@@ -1,102 +1,68 @@
 // --- CONFIGURATION ---
-const USDC_ADDR = "0x3600000000000000000000000000000000000000"; // Arc Testnet USDC
-const ARC_CHAIN_ID_HEX = "0x4cef52"; // Chain ID: 5042002
-const INR_RATE = 83.50; // Mock Conversion Rate
+const USDC_ADDR = "0x3600000000000000000000000000000000000000";
+const ARC_CHAIN_ID_HEX = "0x4cef52"; 
+const INR_RATE = 83.50;
 
 let userAddress = "";
 let provider, signer;
 
-// 1. CONNECTION LOGIC
+// 1. CONNECTION (Arc Testnet Setup)
 async function connectWallet() {
-    if (window.ethereum) {
-        try {
-            // Auto-switch or Add Arc Network
-            try {
+    if (!window.ethereum) return alert("Install Wallet!");
+    try {
+        await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: ARC_CHAIN_ID_HEX }],
+        }).catch(async (err) => {
+            if (err.code === 4902) {
                 await window.ethereum.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: ARC_CHAIN_ID_HEX }],
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                        chainId: ARC_CHAIN_ID_HEX,
+                        chainName: "Arc Testnet",
+                        nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
+                        rpcUrls: ["https://rpc.testnet.arc.network/"],
+                        blockExplorerUrls: ["https://testnet.arcscan.app/"]
+                    }]
                 });
-            } catch (switchError) {
-                if (switchError.code === 4902) {
-                    await window.ethereum.request({
-                        method: 'wallet_addEthereumChain',
-                        params: [{
-                            chainId: ARC_CHAIN_ID_HEX,
-                            chainName: "Arc Testnet",
-                            nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
-                            rpcUrls: ["https://rpc.testnet.arc.network/"],
-                            blockExplorerUrls: ["https://testnet.arcscan.app/"]
-                        }]
-                    });
-                }
             }
+        });
 
-            // Get Accounts
-            const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-            userAddress = accounts[0];
-            
-            // Initialize Ethers
-            provider = new ethers.providers.Web3Provider(window.ethereum);
-            signer = provider.getSigner();
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+        userAddress = accounts[0];
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
 
-            // UI Update: 0x...36783 Format
-            const displayAddr = userAddress.slice(0, 6) + "..." + userAddress.slice(-5);
-            document.getElementById("walletAddr").innerText = displayAddr.toUpperCase();
-            document.getElementById("connectBtn").innerText = "Connected";
-            document.getElementById("connectBtn").style.backgroundColor = "#10b981"; // Green color
-            
-            fetchBalance();
-        } catch (e) {
-            console.error("Connection Failed", e);
-            alert("Connection Error: " + e.message);
-        }
-    } else {
-        alert("Please install a Web3 Wallet like MetaMask or OKX!");
-    }
+        document.getElementById("walletAddr").innerText = userAddress.slice(0, 6) + "..." + userAddress.slice(-5).toUpperCase();
+        document.getElementById("connectBtn").innerText = "Connected";
+        
+        fetchBalance();
+    } catch (e) { alert("Error: " + e.message); }
 }
 
-// 2. FETCH BALANCE & INR CONVERSION
+// 2. BALANCE & INR
 async function fetchBalance() {
     try {
         const abi = ["function balanceOf(address) view returns (uint256)"];
         const contract = new ethers.Contract(USDC_ADDR, abi, provider);
         const bal = await contract.balanceOf(userAddress);
-        const formatted = ethers.utils.formatUnits(bal, 6); // Arc USDC has 6 decimals
-        
+        const formatted = ethers.utils.formatUnits(bal, 6);
         updateUI(parseFloat(formatted));
-    } catch (e) {
-        console.error("Balance fetch error", e);
-        updateUI(100.00); // Fallback for UI presentation
-    }
+    } catch (e) { updateUI(100.00); }
 }
 
 function updateUI(amt) {
     document.getElementById("usdcBal").innerText = amt.toFixed(2);
-    document.getElementById("inrBal").innerText = (amt * INR_RATE).toLocaleString('en-IN', {minimumFractionDigits: 2});
+    document.getElementById("inrBal").innerText = (amt * INR_RATE).toLocaleString('en-IN');
 }
 
-// 3. ROUTING & MODAL LOGIC
-function openTransfer() {
-    if (!userAddress) return alert("Pehle Wallet Connect karein!");
-    document.getElementById("transferModal").classList.remove("hidden");
-}
-
-function closeTransfer() {
-    document.getElementById("transferModal").classList.add("hidden");
-}
-
-function updateInrPreview(val) {
-    const preview = document.getElementById("previewInr");
-    if (!val) { preview.innerText = "0.00"; return; }
-    preview.innerText = (parseFloat(val) * INR_RATE).toLocaleString('en-IN');
-}
-
-// Tera Smart Route Logic
+// 3. SMART ROUTE LOGIC (Tera wala)
 function smartRoute(amount) {
+    // 50 se kam toh Direct, zyada toh Bridge
     return amount < 50 ? "Direct Send" : "Bridge via CCTP";
 }
 
-// 4. FINAL BLOCKCHAIN TRANSACTION (With OKX Fix)
+// 4. TRANSACTION (Working Fix for OKX)
 async function sendTransaction() {
     const to = document.getElementById("toAddress").value;
     const amount = document.getElementById("sendAmount").value;
@@ -106,48 +72,46 @@ async function sendTransaction() {
     if (!amount || amount <= 0) return alert("Enter Amount!");
 
     try {
-        btn.innerText = "Processing...";
+        btn.innerText = "PROCESSING...";
         btn.disabled = true;
 
-        const route = smartRoute(amount);
+        const route = smartRoute(parseFloat(amount));
         console.log("Routing via: " + route);
 
         const abi = ["function transfer(address, uint256) returns (bool)"];
         const contract = new ethers.Contract(USDC_ADDR, abi, signer);
         
-        // Arc USDC uses 6 decimals
         const amountInUnits = ethers.utils.parseUnits(amount, 6);
 
-        // TRANSACTION TRIGGER
-        // Added explicit gas settings for OKX Wallet stability
+        // --- OKX WALLET FIX ---
+        // Hum manually gasLimit aur data pass karenge taaki wallet confuse na ho
         const tx = await contract.transfer(to, amountInUnits, {
-            gasLimit: 80000, 
-            gasPrice: ethers.utils.parseUnits("0.01", 9) 
+            gasLimit: ethers.BigNumber.from("100000"), // Manual limit
+            gasPrice: await provider.getGasPrice()    // Network se current price uthao
         });
         
-        alert("Transaction Sent! Route: " + route + "\nHash: " + tx.hash);
+        alert(`Route: ${route}\nTx Sent! Hash: ${tx.hash.slice(0,15)}...`);
         
         await tx.wait();
-        alert("Payment Successful!");
-        closeTransfer();
+        alert("Transaction Confirmed! ✅");
+        document.getElementById("transferModal").classList.add("hidden");
         fetchBalance();
-        
+
     } catch (e) {
         console.error(e);
-        // Agar gas ka error hai toh user ko samjhao
+        // Agar gas error hai toh alert do
         if (e.message.includes("insufficient funds")) {
-            alert("Error: Aapke paas Gas Fee (USDC) kam hai!");
+            alert("Error: Aapke wallet mein Gas (USDC) nahi hai!");
         } else {
-            alert("Error: " + e.message);
+            alert("Transaction Failed! Code check console.");
         }
     } finally {
-        btn.innerText = "Confirm Payment";
+        btn.innerText = "CONFIRM PAYMENT";
         btn.disabled = false;
     }
 }
 
-// UI Helpers
-function showMyAddress() {
-    if (!userAddress) return alert("Connect Wallet First!");
-    alert("Your Address: " + userAddress);
-}
+// Helper Functions
+function openTransfer() { if(userAddress) document.getElementById("transferModal").classList.remove("hidden"); else connectWallet(); }
+function closeTransfer() { document.getElementById("transferModal").classList.add("hidden"); }
+function updateInrPreview(val) { document.getElementById("previewInr").innerText = (val * INR_RATE).toLocaleString('en-IN'); }
