@@ -10,26 +10,30 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
     
     <style>
-        body { 
-            background: linear-gradient(160deg, #FF9933 0%, #FFFFFF 50%, #138808 100%) !important; 
-            color: #000; font-family: sans-serif; margin: 0; padding: 0; min-height: 100vh;
-        }
-        .app-container { max-width: 480px; margin: 0 auto; padding: 20px; box-sizing: border-box; }
-        .glass { background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.3); border-radius: 24px; color: #000; }
         .tiranga-text {
-            background: linear-gradient(90deg, #FF9933 0%, #000080 50%, #138808 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900;
-        }
-        .hidden { display: none !important; }
-        input, select { background: rgba(255, 255, 255, 0.7) !important; border: 1px solid rgba(0,0,0,0.1) !important; color: #000 !important; outline: none; width: 100%; padding: 15px; border-radius: 12px; margin-bottom: 10px; font-weight: bold; }
-        .bottom-pay { position: fixed; bottom: 0; left: 0; right: 0; background: #000080; padding: 20px; z-index: 100; text-align: center; color: white; border-radius: 24px 24px 0 0; display: none; }
-        
-        /* Profile Dropdown */
-        .dropdown { position: relative; }
-        .dropdown-menu { display: none; position: absolute; right: 0; top: 45px; background: white; min-width: 160px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border-radius: 12px; z-index: 1000; padding: 10px 0; }
-        .dropdown-menu button { width: 100%; text-align: left; padding: 10px 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #f0f0f0; }
-        .dropdown-menu button:last-child { border: none; color: red; }
-        .show { display: block !important; }
+    /* 3 Colors: Saffron (#FF9933), White (#FFFFFF), Green (#138808) */
+    background: linear-gradient(90deg, #FF9933 10%, #FFFFFF 50%, #138808 90%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-style: italic;
+    /* Visibility badhane ke liye dark shadow */
+    filter: drop-shadow(2px 2px 1px rgba(0, 0, 0, 0.8));
+    display: inline-block;
+    letter-spacing: 1px;
+}
+
+/* Logo Box ko bhi thoda dark border dein taaki wo stand out kare */
+.logo-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.2); /* Thoda dark background */
+    padding: 8px 15px;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
     </style>
 </head>
 <body onload="autoConnect()">
