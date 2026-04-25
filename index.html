@@ -23,7 +23,7 @@
             <div class="bg-blue-600 text-white rounded-2xl w-20 h-20 flex items-center justify-center text-3xl mb-6 shadow-2xl">1st</div>
             <h1 class="text-4xl text-blue-500 mb-2">Arc Indipay</h1>
             <p class="text-white/40 text-[10px] mb-10 tracking-[0.3em]">Direct USDC Payments</p>
-            <button onclick="connectWallet()" class="w-full max-w-xs bg-blue-600 py-4 rounded-2xl shadow-xl active:scale-95">Connect Wallet</button>
+            <button onclick="connectWallet()" class="w-full max-w-xs bg-blue-600 py-4 rounded-2xl shadow-xl active:scale-95 text-white">Connect Wallet</button>
         </div>
 
         <div id="dashboard" class="hidden animate-in fade-in duration-500">
@@ -60,8 +60,8 @@
             </div>
 
             <div class="glass p-6">
-                <p class="text-[10px] font-bold opacity-30 mb-4 tracking-widest uppercase italic">Transaction History</p>
-                <div id="txStatus" class="text-xs opacity-40 text-center py-4 italic">No recent payments</div>
+                <p class="text-[10px] font-bold opacity-30 mb-4 tracking-widest uppercase italic text-center">Transaction Status</p>
+                <div id="txStatus" class="text-xs opacity-40 text-center py-2 italic text-blue-300">Wallet Connected Successfully</div>
             </div>
         </div>
 
@@ -71,15 +71,4 @@
                     <h3 class="text-blue-400">Send Payment</h3>
                     <button onclick="closeTransfer()" class="text-white/40 text-2xl">&times;</button>
                 </div>
-                <input id="toAddress" type="text" placeholder="Recipient Address 0x..." class="w-full p-4 rounded-xl bg-white/5 border border-white/10 mb-5 outline-none text-sm focus:border-blue-500 transition-all">
-                <input id="amount" type="number" oninput="updateInrPreview(this.value)" placeholder="0.00" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 mb-1 font-bold text-3xl outline-none focus:border-blue-500">
-                <p class="text-[11px] text-blue-400 mb-10 font-bold italic">≈ ₹<span id="previewInr">0.00</span> INR</p>
-                <button onclick="executePayment()" id="finalSendBtn" class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-xl active:scale-95 uppercase italic tracking-wider">Confirm Send</button>
-            </div>
-        </div>
-
-        <p class="text-center text-blue-800 font-bold italic mt-12 text-[10px] opacity-40 tracking-tighter">arc Circle Sevilla Account</p>
-    </div>
-    <script src="app.js"></script>
-</body>
-</html>
+                <input id="toAddress"
