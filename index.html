@@ -1,107 +1,85 @@
-const USDC_ADDR = "0x3600000000000000000000000000000000000000";
-const ARC_CHAIN_ID = "0x4cef52"; 
-const INR_RATE = 83.50;
-
-let userAddress = "";
-let provider, signer;
-
-// 1. Connection Logic
-async function connectWallet() {
-    if (!window.ethereum) return alert("Please install OKX or MetaMask!");
-    try {
-        await window.ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: ARC_CHAIN_ID }],
-        }).catch(async (err) => {
-            if (err.code === 4902) {
-                await window.ethereum.request({
-                    method: 'wallet_addEthereumChain',
-                    params: [{
-                        chainId: ARC_CHAIN_ID,
-                        chainName: "Arc Testnet",
-                        nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
-                        rpcUrls: ["https://rpc.testnet.arc.network/"],
-                        blockExplorerUrls: ["https://testnet.arcscan.app/"]
-                    }]
-                });
-            }
-        });
-
-        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-        userAddress = accounts[0];
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        signer = provider.getSigner();
-
-        // Switch to Dashboard
-        document.getElementById("loginScreen").classList.add("hidden");
-        document.getElementById("dashboard").classList.remove("hidden");
-
-        // UI Update
-        document.getElementById("walletAddr").innerText = userAddress.slice(0, 6) + "..." + userAddress.slice(-5).toUpperCase();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <title>ARC INDIPAY</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <style>
+        body { background: #030613; color: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; min-height: 100vh; margin: 0; overflow-x: hidden; }
+        .app-container { max-width: 480px; width: 100%; padding: 20px; }
+        .glass { background: rgba(17, 25, 45, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; }
+        .hidden { display: none; }
+        .tool-btn { cursor: pointer; transition: 0.2s; }
+        .tool-btn:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+    <div class="app-container">
         
-        fetchBalance();
-    } catch (e) { console.error(e); }
-}
+        <div id="loginScreen" class="flex flex-col items-center justify-center min-h-[80vh] text-center font-bold italic uppercase">
+            <div class="bg-blue-600 text-white rounded-2xl w-20 h-20 flex items-center justify-center text-3xl mb-6 shadow-2xl">1st</div>
+            <h1 class="text-4xl text-blue-500 mb-2">Arc Indipay</h1>
+            <p class="text-white/40 text-[10px] mb-10 tracking-[0.3em]">Direct USDC Payments</p>
+            <button onclick="connectWallet()" class="w-full max-w-xs bg-blue-600 py-4 rounded-2xl shadow-xl active:scale-95">Connect Wallet</button>
+        </div>
 
-// 2. Real Balance Fetch
-async function fetchBalance() {
-    try {
-        const abi = ["function balanceOf(address) view returns (uint256)"];
-        const contract = new ethers.Contract(USDC_ADDR, abi, provider);
-        const bal = await contract.balanceOf(userAddress);
-        const formatted = ethers.utils.formatUnits(bal, 6);
-        
-        document.getElementById("usdcBal").innerText = parseFloat(formatted).toFixed(2);
-        document.getElementById("inrBal").innerText = (formatted * INR_RATE).toLocaleString('en-IN', {minimumFractionDigits: 2});
-    } catch (e) {
-        document.getElementById("usdcBal").innerText = "100.00"; // Demo Fallback
-    }
-}
+        <div id="dashboard" class="hidden animate-in fade-in duration-500">
+            <div class="flex justify-between items-center mb-8 uppercase italic font-bold">
+                <div class="flex items-center gap-2">
+                    <div class="bg-blue-600 text-white rounded px-2 py-0.5 text-[10px]">1st</div>
+                    <span class="text-[10px] text-green-400 tracking-tighter">Live</span>
+                </div>
+                <h2 class="text-xl text-blue-500">Arc Indipay</h2>
+            </div>
 
-// 3. Simple Payment Execution (No Bridge)
-async function executePayment() {
-    const to = document.getElementById("toAddress").value;
-    const amount = document.getElementById("amount").value;
-    const btn = document.getElementById("finalSendBtn");
+            <div class="glass p-7 mb-6 bg-gradient-to-br from-blue-700 to-indigo-900 border-none shadow-2xl">
+                <p class="text-[9px] opacity-60 mb-2 font-mono uppercase tracking-widest">Address: <span id="walletAddr">0x...</span></p>
+                <div class="mt-4">
+                    <h1 class="text-5xl font-black tracking-tighter"><span id="usdcBal">0.00</span> <span class="text-2xl opacity-50 font-medium">USDC</span></h1>
+                    <p class="text-xl font-bold mt-2 text-blue-300 italic">≈ ₹<span id="inrBal">0.00</span></p>
+                </div>
+            </div>
 
-    if (!ethers.utils.isAddress(to)) return alert("Invalid Recipient!");
-    if (!amount || amount <= 0) return alert("Enter Amount!");
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div onclick="openTransfer()" class="glass p-8 text-center tool-btn border-white/5">
+                    <i class="fa-solid fa-paper-plane text-2xl text-blue-400 mb-3"></i>
+                    <div class="font-bold text-sm uppercase italic">Transfer</div>
+                </div>
+                <div onclick="showMyAddress()" class="glass p-8 text-center tool-btn border-white/5">
+                    <i class="fa-solid fa-qrcode text-2xl text-blue-400 mb-3"></i>
+                    <div class="font-bold text-sm uppercase italic">Receive</div>
+                </div>
+            </div>
 
-    try {
-        btn.innerText = "SENDING...";
-        btn.disabled = true;
+            <div class="glass p-5 text-center tool-btn border-blue-500/20 mb-6" onclick="alert('Camera Scanner starting...')">
+                <i class="fa-solid fa-expand text-blue-400 mr-2"></i>
+                <span class="font-bold text-blue-400 uppercase italic">Scan & Pay</span>
+            </div>
 
-        const abi = ["function transfer(address, uint256) returns (bool)"];
-        const contract = new ethers.Contract(USDC_ADDR, abi, signer);
-        
-        const units = ethers.utils.parseUnits(amount, 6);
+            <div class="glass p-6">
+                <p class="text-[10px] font-bold opacity-30 mb-4 tracking-widest uppercase italic">Transaction History</p>
+                <div id="txStatus" class="text-xs opacity-40 text-center py-4 italic">No recent payments</div>
+            </div>
+        </div>
 
-        // Fixed Gas for OKX/Mobile Wallet Stability
-        const tx = await contract.transfer(to, units, {
-            gasLimit: 120000,
-            gasPrice: await provider.getGasPrice()
-        });
-        
-        document.getElementById("txStatus").innerHTML = `<b>Status:</b> Pending...<br><span class='text-[10px]'>Hash: ${tx.hash.slice(0,20)}...</span>`;
-        
-        await tx.wait();
-        alert("Transaction Confirmed! ✅");
-        
-        document.getElementById("txStatus").innerHTML = `<span class='text-green-400 font-bold'>Last Transaction: Success ✅</span>`;
-        closeTransfer();
-        fetchBalance();
-        
-    } catch (e) {
-        alert("Error: Check USDC for fees!");
-        console.error(e);
-    } finally {
-        btn.innerText = "CONFIRM SEND";
-        btn.disabled = false;
-    }
-}
+        <div id="transferModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden flex items-center justify-center p-6 z-50">
+            <div class="glass p-7 w-full max-w-sm border-blue-500/30">
+                <div class="flex justify-between items-center mb-8 uppercase italic font-bold">
+                    <h3 class="text-blue-400">Send Payment</h3>
+                    <button onclick="closeTransfer()" class="text-white/40 text-2xl">&times;</button>
+                </div>
+                <input id="toAddress" type="text" placeholder="Recipient Address 0x..." class="w-full p-4 rounded-xl bg-white/5 border border-white/10 mb-5 outline-none text-sm focus:border-blue-500 transition-all">
+                <input id="amount" type="number" oninput="updateInrPreview(this.value)" placeholder="0.00" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 mb-1 font-bold text-3xl outline-none focus:border-blue-500">
+                <p class="text-[11px] text-blue-400 mb-10 font-bold italic">≈ ₹<span id="previewInr">0.00</span> INR</p>
+                <button onclick="executePayment()" id="finalSendBtn" class="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-xl active:scale-95 uppercase italic tracking-wider">Confirm Send</button>
+            </div>
+        </div>
 
-// UI HELPERS
-function openTransfer() { document.getElementById("transferModal").classList.remove("hidden"); }
-function closeTransfer() { document.getElementById("transferModal").classList.add("hidden"); }
-function updateInrPreview(v) { document.getElementById("previewInr").innerText = (v * INR_RATE).toLocaleString('en-IN'); }
-function showMyAddress() { alert("Your address: " + userAddress); }
+        <p class="text-center text-blue-800 font-bold italic mt-12 text-[10px] opacity-40 tracking-tighter">arc Circle Sevilla Account</p>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
