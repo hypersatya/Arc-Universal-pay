@@ -1,37 +1,82 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Arc Universal Pay</title>
+<title>Arc UniPay</title>
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
 <style>
 body{
   font-family: Arial;
   background: linear-gradient(135deg,#0ea5e9,#1e3a8a);
   color:white;
-  padding:20px;
+  padding:15px;
 }
 
 .box{
-  max-width:400px;
+  max-width:420px;
   margin:auto;
 }
 
-input,button{
+/* HEADER */
+.title{
+  text-align:center;
+  margin-bottom:15px;
+}
+
+.title h1{
+  margin:0;
+  font-size:28px;
+  font-weight:bold;
+}
+
+.title p{
+  margin:0;
+  font-size:12px;
+  opacity:0.8;
+}
+
+input,button,textarea{
   width:100%;
   padding:12px;
-  margin:8px 0;
+  margin:6px 0;
   border-radius:10px;
   border:none;
 }
 
-button{
-  cursor:pointer;
-}
+button{cursor:pointer;font-weight:bold}
 
 .connect{background:#22c55e;}
 .send{background:#3b82f6;}
+.multi{background:#f59e0b;}
+.faucet{background:#14b8a6;}
+.gas{background:#ef4444;}
+
+.footer{
+  margin-top:30px;
+  background:#0f172a;
+  padding:15px;
+  border-radius:12px;
+  font-size:13px;
+}
+
+.icons{
+  display:flex;
+  gap:15px;
+  margin:10px 0;
+  justify-content:center;
+}
+
+.icon{
+  width:30px;
+  height:30px;
+  background:#1e293b;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
 </style>
 
 </head>
@@ -40,17 +85,61 @@ button{
 
 <div class="box">
 
-<h2>Arc Universal Pay 🚀</h2>
+<!-- HEADER -->
+<div class="title">
+  <h1>ARC UNIPAY 🚀</h1>
+  <p>nice build for arc</p>
+</div>
 
 <button class="connect" onclick="connect()">Connect Wallet</button>
 
 <p id="addr"></p>
+<p id="balance"></p>
 
-<h4 id="balance"></h4>
+<input id="amount" placeholder="Amount">
 
-<input id="amount" placeholder="Enter amount">
+<button class="send" onclick="send()">💸 Send</button>
 
-<button class="send" onclick="send()">Send</button>
+<h3>Multi Send</h3>
+<textarea id="multi" placeholder="One address per line"></textarea>
+<button class="multi" onclick="multiSend()">Send to Many</button>
+
+<h3>Receive</h3>
+<canvas id="qr"></canvas>
+
+<!-- ACTION BUTTONS -->
+<button class="faucet" onclick="faucet()">💧 Faucet Claim</button>
+<button class="gas" onclick="gasTracker()">⛽ Gas Tracker</button>
+
+<!-- FOOTER -->
+<div class="footer">
+
+<h4>ARC ECOSYSTEM</h4>
+<div class="icons">
+  <div class="icon">△</div>
+  <div class="icon">📄</div>
+  <div class="icon">👥</div>
+  <div class="icon">✖</div>
+  <div class="icon">💬</div>
+</div>
+
+<h4>CIRCLE ECOSYSTEM</h4>
+<div class="icons">
+  <div class="icon">⭕</div>
+  <div class="icon">&lt;/&gt;</div>
+  <div class="icon">✖</div>
+</div>
+
+<hr>
+
+<p>✔ Arc Testnet (native USDC)</p>
+<p>✔ Multi-wallet support (MetaMask, Rabby, OKX, Trust)</p>
+<p>✔ WalletConnect v2 support</p>
+<p>✔ Works in browser + wallet apps</p>
+<p>✔ Mobile-first</p>
+<p>✔ No wrong ERC20 logic</p>
+
+</div>
 
 </div>
 
@@ -58,6 +147,7 @@ button{
 
 let user;
 
+// CONNECT
 async function connect(){
   if(!window.ethereum){
     alert("Install MetaMask");
@@ -76,14 +166,12 @@ async function connect(){
 
   document.getElementById("balance").innerText =
     "Balance: " + ethers.formatEther(bal) + " ETH";
+
+  QRCode.toCanvas(document.getElementById("qr"), user);
 }
 
+// SEND
 async function send(){
-  if(!user){
-    alert("Connect wallet first");
-    return;
-  }
-
   const amount = document.getElementById("amount").value;
 
   const provider = new ethers.BrowserProvider(window.ethereum);
@@ -96,11 +184,42 @@ async function send(){
     });
 
     await tx.wait();
-
-    alert("Transaction Success 🚀");
-  }catch(e){
+    alert("Sent ✅");
+  }catch{
     alert("Failed ❌");
   }
+}
+
+// MULTI SEND
+async function multiSend(){
+  const list = document.getElementById("multi").value.split("\n");
+
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  const signer = await provider.getSigner();
+
+  for(let addr of list){
+    if(addr){
+      try{
+        const tx = await signer.sendTransaction({
+          to: addr,
+          value: ethers.parseEther("0.001")
+        });
+        await tx.wait();
+      }catch{}
+    }
+  }
+
+  alert("Multi send done 🚀");
+}
+
+// FAUCET
+function faucet(){
+  window.open("https://faucet.circle.com","_blank");
+}
+
+// GAS TRACKER
+function gasTracker(){
+  window.open("https://testnet.arcscan.app/gas-tracker","_blank");
 }
 
 </script>
