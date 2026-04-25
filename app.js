@@ -1,174 +1,141 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <title>ARC INDIPAY - V8 SUCESS CARD</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-    <style>
-        body { background: #030613; color: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; min-height: 100vh; margin: 0; overflow-x: hidden; }
-        .app-container { max-width: 480px; width: 100%; padding: 20px; }
-        .glass { background: rgba(17, 25, 45, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; }
-        .hidden { display: none !important; }
-        .tool-btn { cursor: pointer; transition: 0.2s; }
-        .tool-btn:active { transform: scale(0.95); background: rgba(59, 92, 255, 0.1); }
-        select { background: #11192d !important; color: white !important; appearance: none; outline: none; border: 1px solid rgba(255,255,255,0.1) !important; }
-        option { background: #11192d; color: white; }
-        input { outline: none; color: white; background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; }
-        .plan-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); transition: 0.2s; cursor: pointer; }
-        .plan-card.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
-    </style>
-</head>
-<body>
-    <div class="app-container">
-        <div id="loginScreen" class="flex flex-col items-center justify-center min-h-[80vh] text-center font-bold italic uppercase">
-            <div class="bg-blue-600 text-white rounded-2xl w-20 h-20 flex items-center justify-center text-3xl mb-6 shadow-2xl">1ST</div>
-            <h1 class="text-4xl text-blue-500 mb-2 font-black italic tracking-tighter">Arc Indipay</h1>
-            <button onclick="connectWallet()" class="w-full max-w-xs bg-blue-600 py-4 rounded-2xl shadow-xl text-white font-black italic">CONNECT WALLET</button>
-        </div>
+const USDC_ADDR = "0x3600000000000000000000000000000000000000";
+const MERCHANT = "0xbdc55a1296d065b7eb4363207d1a599e578712c5"; 
+const INR_RATE = 83.50;
 
-        <div id="dashboard" class="hidden">
-            <div class="flex justify-between items-center mb-6 uppercase italic font-bold">
-                <div class="flex items-center gap-2"><div class="bg-blue-600 text-white rounded px-2 py-0.5 text-[10px]">1ST</div><span class="text-[10px] text-green-400 font-bold uppercase">Live</span></div>
-                <h2 class="text-xl text-blue-500 font-black tracking-tighter">Arc Indipay</h2>
-            </div>
+let userAddress = "", provider, signer, currentType = "", selectedUsdc = 0;
 
-            <div class="glass p-7 mb-6 bg-gradient-to-br from-blue-700 to-indigo-900 border-none shadow-2xl text-center">
-                <p class="text-[9px] opacity-60 mb-2 font-mono uppercase tracking-widest text-white">Wallet: <span id="walletAddr">0x...</span></p>
-                <div class="mt-4 font-bold italic text-white uppercase tracking-tighter">
-                    <h1 class="text-5xl font-black tracking-tighter"><span id="usdcBal">0.00</span> <span class="text-2xl opacity-50">USDC</span></h1>
-                    <p class="text-xl font-bold mt-2 text-blue-300">≈ ₹<span id="inrBal">0.00</span></p>
-                </div>
-            </div>
+const operators = {
+    mobile: ["Jio Prepaid", "Airtel Prepaid", "Vi Prepaid"],
+    electricity: ["Tata Power", "Adani Electricity", "Bescom"],
+    dth: ["Tata Play", "Airtel DTH", "Dish TV"],
+    broadband: ["JioFiber", "Airtel Xstream"],
+    train: ["IRCTC"], bus: ["RedBus"], flight: ["IndiGo"], movie: ["PVR"]
+};
 
-            <div class="grid grid-cols-2 gap-4 mb-4 text-center text-white font-bold italic uppercase">
-                <div onclick="openTransfer()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-paper-plane text-2xl text-blue-400 mb-3"></i><div class="text-sm tracking-tighter">Transfer</div></div>
-                <div onclick="openReceive()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-qrcode text-2xl text-blue-400 mb-3"></i><div class="text-sm tracking-tighter">Receive</div></div>
-            </div>
-            <div class="grid grid-cols-2 gap-4 mb-8 text-center text-white font-bold italic uppercase">
-                <div onclick="startScanner()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-expand text-2xl text-blue-400 mb-3"></i><div class="text-xs tracking-tighter">Scan & Pay</div></div>
-                <div onclick="openHistoryModal()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-clock-rotate-left text-2xl text-blue-400 mb-3"></i><div class="text-xs tracking-tighter">History</div></div>
-            </div>
+const labels = {
+    mobile: "Mobile Number", electricity: "Consumer ID",
+    dth: "Smart Card ID", broadband: "Subscriber ID",
+    train: "PNR No", bus: "Route", flight: "Dest.", movie: "Cinema"
+};
 
-            <div class="glass p-7 mb-6 border-blue-500/30 text-white font-bold italic uppercase">
-                <div class="flex items-center gap-3 mb-6"><i class="fa-bolt fa-solid text-blue-400"></i><h3 class="text-blue-400 text-sm tracking-wider font-black">Utility PaymentsBhai, main samajh gaya. Aapko transaction success hone ke baad ek professional aur pyara sa **Congratulation Card** chahiye. Maine poora code update kar diya hai. Ab payment success hote hi ek bada card khulega jaisa aapne bataya hai.
+const mockPlans = [
+    { name: "1.5GB/Day - 28 Days", inr: 299 },
+    { name: "2GB/Day - 84 Days", inr: 749 },
+    { name: "Unlimited 5G - 365 Days", inr: 2999 }
+];
 
-Niche dono files ko update kar diya hai. Inhe replace kar lo:
+async function connectWallet() {
+    if (!window.ethereum) return alert("Install Wallet!");
+    try {
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+        userAddress = accounts[0];
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        signer = provider.getSigner();
+        document.getElementById("loginScreen").classList.add("hidden");
+        document.getElementById("dashboard").classList.remove("hidden");
+        document.getElementById("walletAddr").innerText = userAddress.slice(0, 6) + "..." + userAddress.slice(-4).toUpperCase();
+        fetchBalance();
+        getHistory(5, "latestTxList");
+    } catch (e) {}
+}
 
-### 📄 1. `index.html` (Full Copy)
+function openPopup(type) {
+    currentType = type;
+    document.getElementById("bookingModal").classList.remove("hidden");
+    document.getElementById("modalTitle").innerText = type.toUpperCase();
+    document.getElementById("targetId").placeholder = labels[type];
+    const opSelect = document.getElementById("operatorSelect");
+    opSelect.innerHTML = `<option disabled selected>Select Provider</option>`;
+    operators[type].forEach(op => opSelect.innerHTML += `<option value="${op}">${op}</option>`);
+    document.getElementById("customAmountBox").classList.add("hidden");
+    document.getElementById("plansBox").classList.add("hidden");
+    document.getElementById("finalPayBtn").classList.add("hidden");
+}
 
-Maine CSS styles fix kiye hain taaki dashboard ke icons aur card professional dikhein.
+function checkTypeAndShow() {
+    if (currentType === 'mobile') {
+        document.getElementById("customAmountBox").classList.add("hidden");
+        document.getElementById("plansBox").classList.remove("hidden");
+        loadPlans();
+    } else {
+        document.getElementById("plansBox").classList.add("hidden");
+        document.getElementById("customAmountBox").classList.remove("hidden");
+        document.getElementById("finalPayBtn").classList.remove("hidden");
+    }
+}
 
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <title>ARC INDIPAY - FINAL FIX</title>
-    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
-    <script src="[https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js](https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js)"></script>
-    <script src="[https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js](https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js)"></script>
-    <script src="[https://unpkg.com/html5-qrcode](https://unpkg.com/html5-qrcode)"></script>
-    <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css)"/>
-    
-    <style>
-        body { background: #030613; color: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; min-height: 100vh; margin: 0; overflow-x: hidden; }
-        .app-container { max-width: 480px; width: 100%; padding: 20px; }
-        .glass { background: rgba(17, 25, 45, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; }
-        .hidden { display: none !important; }
-        .tool-btn { cursor: pointer; transition: 0.2s; }
-        .tool-btn:active { transform: scale(0.95); background: rgba(59, 92, 255, 0.1); }
-        input, select { outline: none; color: white; background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; }
-        option { background: #030613; color: white; }
-    </style>
-</head>
-<body>
-    <div class="app-container">
-        <div id="loginScreen" class="flex flex-col items-center justify-center min-h-[80vh] text-center font-bold italic uppercase">
-            <div class="bg-blue-600 text-white rounded-2xl w-20 h-20 flex items-center justify-center text-3xl mb-6 shadow-2xl">1ST</div>
-            <h1 class="text-4xl text-blue-500 mb-2 font-black italic tracking-tighter">Arc Indipay</h1>
-            <button onclick="connectWallet()" class="w-full max-w-xs bg-blue-600 py-4 rounded-2xl shadow-xl text-white font-black italic">CONNECT WALLET</button>
-            <p id="debug" class="text-[10px] text-red-500 mt-4 italic opacity-50"></p>
-        </div>
+function convertToUsdc(val) {
+    selectedUsdc = (val / INR_RATE).toFixed(2);
+    document.getElementById("convertedUsdc").innerText = selectedUsdc;
+}
 
-        <div id="dashboard" class="hidden">
-            <div class="flex justify-between items-center mb-6 uppercase italic font-bold">
-                <div class="flex items-center gap-2"><div class="bg-blue-600 text-white rounded px-2 py-0.5 text-[10px]">1ST</div><span class="text-[10px] text-green-400 font-bold uppercase">Live</span></div>
-                <h2 class="text-xl text-blue-500 font-black">Arc Indipay</h2>
-            </div>
+function loadPlans() {
+    const list = document.getElementById("plansList");
+    list.innerHTML = "";
+    mockPlans.forEach(plan => {
+        const usdc = (plan.inr / INR_RATE).toFixed(2);
+        list.innerHTML += `<div onclick="selectPlan(${plan.inr}, ${usdc})" class="plan-card mb-2 flex justify-between items-center">
+            <span class="text-[11px]">${plan.name}</span><span class="text-blue-400 font-bold">₹${plan.inr} (${usdc} USDC)</span>
+        </div>`;
+    });
+}
 
-            <div class="glass p-7 mb-6 bg-gradient-to-br from-blue-700 to-indigo-900 border-none shadow-2xl text-center">
-                <p class="text-[9px] opacity-60 mb-2 font-mono uppercase tracking-widest text-white">Address: <span id="walletAddr">0x...</span></p>
-                <div class="mt-4 font-bold italic text-white uppercase tracking-tighter">
-                    <h1 class="text-5xl font-black tracking-tighter"><span id="usdcBal">0.00</span> <span class="text-2xl opacity-50">USDC</span></h1>
-                    <p class="text-xl font-bold mt-2 text-blue-300">≈ ₹<span id="inrBal">0.00</span></p>
-                </div>
-            </div>
+function selectPlan(inr, usdc) {
+    selectedUsdc = usdc;
+    const btn = document.getElementById("finalPayBtn");
+    btn.classList.remove("hidden");
+    btn.innerText = `CONFIRM ₹${inr}`;
+    const cards = document.querySelectorAll('.plan-card');
+    cards.forEach(c => c.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+}
 
-            <div class="grid grid-cols-2 gap-4 mb-4 text-center text-white font-bold italic uppercase">
-                <div onclick="openTransfer()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-paper-plane text-2xl text-blue-400 mb-3"></i><div class="text-sm">Transfer</div></div>
-                <div onclick="openReceive()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-qrcode text-2xl text-blue-400 mb-3"></i><div class="text-sm">Receive</div></div>
-            </div>
-            <div class="grid grid-cols-2 gap-4 mb-8 text-center text-white font-bold italic uppercase">
-                <div onclick="startScanner()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-expand text-2xl text-blue-400 mb-3"></i><div class="text-xs">Scan & Pay</div></div>
-                <div onclick="openHistoryModal()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-clock-rotate-left text-2xl text-blue-400 mb-3"></i><div class="text-sm">History</div></div>
-            </div>
+async function executeFinalPayment() {
+    const id = document.getElementById("targetId").value;
+    const op = document.getElementById("operatorSelect").value;
+    const btn = document.getElementById("finalPayBtn");
+    try {
+        btn.innerText = "WAITING..."; btn.disabled = true;
+        const abi = ["function transfer(address to, uint256 amount) public returns (bool)"];
+        const contract = new ethers.Contract(USDC_ADDR, abi, signer);
+        const tx = await contract.transfer(MERCHANT, ethers.utils.parseUnits(selectedUsdc.toString(), 6), { gasLimit: 120000, type: 0 });
+        await tx.wait();
+        
+        // Show Card
+        document.getElementById("resId").innerText = id;
+        document.getElementById("resOp").innerText = op;
+        document.getElementById("resAmt").innerText = selectedUsdc + " USDC";
+        closeModal('bookingModal');
+        document.getElementById("successModal").classList.remove("hidden");
+        
+        fetchBalance();
+        getHistory(5, "latestTxList");
+    } catch (e) { alert("Fail!"); btn.innerText = "Confirm Payment"; btn.disabled = false; }
+}
 
-            <div class="glass p-7 mb-6 border-blue-500/30 text-white font-bold italic uppercase">
-                <div class="flex items-center gap-3 mb-6"><i class="fa-bolt fa-solid text-blue-400"></i><h3 class="text-blue-400 text-sm tracking-wider">Utility Payments h3></div>
-                <div class="grid grid-cols-2 gap-4 text-center">
-                    <div onclick="openPopup('mobile')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-mobile-screen text-blue-400"></i><div class="text-[10px]">Mobile</div></div>
-                    <div onclick="openPopup('electricity')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-lightbulb text-blue-400"></i><div class="text-[10px]">Electric</div></div>
-                    <div onclick="openPopup('dth')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-tv text-blue-400"></i><div class="text-[10px]">DTH</div></div>
-                    <div onclick="openPopup('broadband')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-wifi text-blue-400"></i><div class="text-[10px]">Broadband</div></div>
-                </div>
-            </div>
+async function fetchBalance() {
+    try {
+        const abi = ["function balanceOf(address) view returns (uint256)"];
+        const contract = new ethers.Contract(USDC_ADDR, abi, provider);
+        const bal = await contract.balanceOf(userAddress);
+        const f = ethers.utils.formatUnits(bal, 6);
+        document.getElementById("usdcBal").innerText = parseFloat(f).toFixed(2);
+        document.getElementById("inrBal").innerText = (f * INR_RATE).toLocaleString('en-IN');
+    } catch (e) {}
+}
 
-            <div class="glass p-7 mb-8 border-blue-500/30 text-white font-bold italic uppercase">
-                <div class="flex items-center gap-3 mb-6"><i class="fa-solid fa-ticket text-blue-400"></i><h3 class="text-blue-400 text-sm tracking-wider">Ticket Booking</h3></div>
-                <div class="grid grid-cols-2 gap-4 text-center">
-                    <div onclick="openPopup('train')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-train text-blue-400"></i><div class="text-[10px]">Train</div></div>
-                    <div onclick="openPopup('bus')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-bus text-blue-400"></i><div class="text-[10px]">Bus</div></div>
-                    <div onclick="openPopup('flight')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-plane text-blue-400"></i><div class="text-[10px]">Flight</div></div>
-                    <div onclick="openPopup('movie')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-film text-blue-400"></i><div class="text-[10px]">Movie</div></div>
-                </div>
-            </div>
+async function getHistory(limit, targetId) {
+    const list = document.getElementById(targetId);
+    try {
+        const abi = ["event Transfer(address indexed from, address indexed to, uint256 value)"];
+        const contract = new ethers.Contract(USDC_ADDR, abi, provider);
+        const logs = await contract.queryFilter(contract.filters.Transfer(userAddress), -1000, "latest");
+        list.innerHTML = logs.slice(-limit).reverse().map(l => `<div class="flex justify-between border-b border-white/5 pb-2 text-[10px]">
+            <p>To: ${l.args.to.slice(0,12)}...</p><p class="font-bold">-${ethers.utils.formatUnits(l.args.value, 6)} USDC</p>
+        </div>`).join('');
+    } catch (e) {}
+}
 
-            <div class="glass p-6 min-h-[160px] text-white">
-                <p class="text-[10px] font-bold opacity-30 mb-4 tracking-widest uppercase italic text-center">Latest Transactions</p>
-                <div id="latestTxList" class="space-y-4"></div>
-            </div>
-        </div>
-
-        <div id="bookingModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden flex items-center justify-center p-6 z-50">
-            <div class="glass p-7 w-full max-w-sm border-blue-500/30 text-white font-bold italic uppercase">
-                <div class="flex justify-between items-center mb-8"><h3 id="modalTitle" class="text-blue-400 italic">Payment</h3><button onclick="closeModal('bookingModal')" class="text-2xl font-bold">&times;</button></div>
-                <div class="space-y-4">
-                    <select id="operatorSelect" class="w-full p-4 rounded-xl text-xs"></select>
-                    <input id="bookId" type="text" class="w-full p-4 rounded-xl text-xs">
-                    <input id="bookAmount" type="number" placeholder="Amount (USDC)" class="w-full p-4 rounded-xl text-xl font-bold">
-                    <button onclick="payBooking()" id="finalPayBtn" class="w-full bg-blue-600 font-black py-4 rounded-2xl shadow-xl active:scale-95 tracking-widest uppercase">Pay & Confirm</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="historyModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden flex flex-col p-6 z-50 text-white font-bold italic uppercase">
-            <div class="flex justify-between items-center mb-6"><h3 class="text-blue-400">Transaction History</h3><button onclick="closeModal('historyModal')" class="text-2xl">&times;</button></div>
-            <div id="fullHistoryList" class="flex-1 overflow-y-auto space-y-4 pr-2"></div>
-        </div>
-
-        <div id="scannerModal" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center p-6 z-[60]">
-            <div class="glass p-4 w-full max-w-sm border-blue-500/30">
-                <div id="reader" class="rounded-2xl overflow-hidden mb-4"></div>
-                <button onclick="stopScanner()" class="w-full py-3 bg-red-500/20 text-red-500 font-bold rounded-xl active:scale-95 uppercase italic">Cancel</button>
-            </div>
-        </div>
-    </div>
-    <script src="app.js"></script>
-</body>
-</html>
+function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
+function openReceive() { alert("Addr: " + userAddress); }
+function openHistoryModal() { document.getElementById("historyModal").classList.remove("hidden"); getHistory(100, "fullHistoryList"); }
