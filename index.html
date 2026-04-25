@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
     
     <style>
@@ -16,7 +17,7 @@
         .hidden { display: none !important; }
         .tool-btn { cursor: pointer; transition: 0.2s; }
         .tool-btn:active { transform: scale(0.95); }
-        input { outline: none; }
+        input { outline: none; color: white; }
     </style>
 </head>
 <body>
@@ -35,7 +36,7 @@
                     <div class="bg-blue-600 text-white rounded px-2 py-0.5 text-[10px]">1ST</div>
                     <span class="text-[10px] text-green-400 tracking-tighter">LIVE</span>
                 </div>
-                <h2 class="text-xl text-blue-500 font-black">Arc Indipay</h2>
+                <h2 class="text-xl text-blue-500 font-black uppercase">Arc Indipay</h2>
             </div>
 
             <div class="glass p-7 mb-6 bg-gradient-to-br from-blue-700 to-indigo-900 border-none shadow-2xl">
@@ -46,49 +47,57 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 mb-4 font-bold uppercase italic">
-                <div onclick="openTransfer()" class="glass p-8 text-center tool-btn border-white/5 shadow-lg">
+            <div class="grid grid-cols-2 gap-4 mb-4 font-bold uppercase italic text-center">
+                <div onclick="openTransfer()" class="glass p-8 tool-btn border-white/5 shadow-lg">
                     <i class="fa-solid fa-paper-plane text-2xl text-blue-400 mb-3"></i>
                     <div class="text-sm">Transfer</div>
                 </div>
-                <div onclick="openReceive()" class="glass p-8 text-center tool-btn border-white/5 shadow-lg">
+                <div onclick="openReceive()" class="glass p-8 tool-btn border-white/5 shadow-lg">
                     <i class="fa-solid fa-qrcode text-2xl text-blue-400 mb-3"></i>
                     <div class="text-sm">Receive</div>
                 </div>
             </div>
 
-            <div class="glass p-5 text-center tool-btn border-blue-500/20 mb-6 shadow-lg" onclick="alert('Camera Scanner starting...')">
+            <div class="glass p-5 text-center tool-btn border-blue-500/20 mb-6 shadow-lg" onclick="startScanner()">
                 <i class="fa-solid fa-expand text-blue-400 mr-2"></i>
                 <span class="font-bold text-blue-400 uppercase italic">Scan & Pay</span>
             </div>
 
-            <div class="glass p-6 min-h-[140px]">
+            <div class="glass p-6 min-h-[160px]">
                 <p class="text-[10px] font-bold opacity-30 mb-4 tracking-widest uppercase italic">Recent Transactions</p>
                 <div id="txHistoryList" class="space-y-4">
-                    </div>
+                    <div class="text-center opacity-20 py-4 text-xs">Waiting for Wallet...</div>
+                </div>
             </div>
         </div>
 
-        <div id="transferModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden flex items-center justify-center p-6 z-50">
-            <div class="glass p-7 w-full max-w-sm border-blue-500/30 text-white">
+        <div id="transferModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden flex items-center justify-center p-6 z-50 text-white">
+            <div class="glass p-7 w-full max-w-sm border-blue-500/30">
                 <div class="flex justify-between items-center mb-8 font-bold italic uppercase">
-                    <h3 class="text-blue-400">Send Payment</h3>
+                    <h3 class="text-blue-400">Send USDC</h3>
                     <button onclick="closeModal('transferModal')" class="text-white/40 text-2xl">&times;</button>
                 </div>
-                <input id="toAddress" type="text" placeholder="Recipient Address 0x..." class="w-full p-4 rounded-xl bg-white/5 border border-white/10 mb-5 text-sm focus:border-blue-500 text-white">
-                <input id="amount" type="number" oninput="updateInrPreview(this.value)" placeholder="0.00" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 mb-1 font-bold text-3xl text-white">
+                <input id="toAddress" type="text" placeholder="Recipient Address 0x..." class="w-full p-4 rounded-xl bg-white/5 border border-white/10 mb-5 text-sm">
+                <input id="amount" type="number" oninput="updateInrPreview(this.value)" placeholder="0.00" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 mb-1 font-bold text-3xl">
                 <p class="text-[11px] text-blue-400 mb-10 font-bold italic uppercase">≈ ₹<span id="previewInr">0.00</span> INR</p>
-                <button onclick="executePayment()" id="finalSendBtn" class="w-full bg-blue-600 font-black py-4 rounded-2xl shadow-xl active:scale-95 uppercase italic tracking-wider">Confirm Send</button>
+                <button onclick="executePayment()" id="finalSendBtn" class="w-full bg-blue-600 font-black py-4 rounded-2xl shadow-xl active:scale-95 uppercase italic">Confirm Payment</button>
             </div>
         </div>
 
         <div id="receiveModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden flex items-center justify-center p-6 z-50">
             <div class="glass p-8 w-full max-w-sm border-blue-500/30 text-center">
                 <h3 class="font-black text-blue-400 italic mb-6 uppercase tracking-wider">Your QR Code</h3>
-                <div id="qrcode" class="bg-white p-4 rounded-2xl inline-block mb-6 shadow-xl"></div>
+                <div id="qrcode" class="bg-white p-4 rounded-2xl inline-block mb-6"></div>
                 <div class="bg-white/5 border border-white/10 p-3 rounded-xl mb-6 truncate text-[10px] font-mono text-blue-300" id="fullAddrDisplay"></div>
                 <button onclick="copyAddr()" class="w-full bg-blue-600 text-white font-black py-4 rounded-xl uppercase text-xs mb-3 active:scale-95">Copy Address</button>
-                <button onclick="closeModal('receiveModal')" class="text-white/30 text-xs uppercase font-bold tracking-widest">Back to Home</button>
+                <button onclick="closeModal('receiveModal')" class="text-white/30 text-xs uppercase font-bold tracking-widest">Close</button>
+            </div>
+        </div>
+
+        <div id="scannerModal" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center p-6 z-[60]">
+            <div class="glass p-4 w-full max-w-sm border-blue-500/30">
+                <div id="reader" class="rounded-2xl overflow-hidden mb-4"></div>
+                <button onclick="stopScanner()" class="w-full py-3 bg-red-500/20 text-red-500 font-bold rounded-xl uppercase italic">Cancel Scan</button>
             </div>
         </div>
 
