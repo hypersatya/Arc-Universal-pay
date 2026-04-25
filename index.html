@@ -3,135 +3,115 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <title>ARC INDIPAY - PRO VERSION</title>
+    <title>ARC INDIPAY - FULL PAGE BOOKING</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
     <style>
-        body { background: #030613; color: #f0f2f5; font-family: sans-serif; margin: 0; overflow-x: hidden; }
-        .app-container { max-width: 480px; margin: 0 auto; padding: 20px; min-height: 100vh; }
+        body { background: #030613; color: #f0f2f5; font-family: sans-serif; margin: 0; }
+        .page { display: none; min-height: 100vh; width: 100%; max-width: 480px; margin: 0 auto; padding: 20px; background: #030613; position: relative; }
+        .page.active { display: block; }
         .glass { background: rgba(17, 25, 45, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; }
-        .hidden { display: none !important; }
-        .tool-btn { cursor: pointer; transition: 0.2s; }
-        .tool-btn:active { transform: scale(0.95); background: rgba(59, 92, 255, 0.1); }
-        input, select { outline: none; color: white; background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; }
-        .success-card { border: 2px solid #22c55e; box-shadow: 0 0 30px rgba(34, 197, 94, 0.2); }
-        .flight-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.08); padding: 15px; border-radius: 12px; }
+        input, select { background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white; outline: none; }
+        
+        /* Results Card Style */
+        .flight-item { background: white; color: #333; border-radius: 12px; padding: 15px; margin-bottom: 12px; }
+        .loader-bar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1a1a1a; padding: 10px 20px; border-radius: 50px; display: flex; align-items: center; gap: 10px; border: 1px solid #333; }
+        .success-card { border: 2px solid #22c55e; box-shadow: 0 0 30px rgba(34, 197, 94, 0.3); }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <div id="loginScreen" class="flex flex-col items-center justify-center min-h-[80vh] text-center font-bold italic uppercase">
-            <div class="bg-blue-600 text-white rounded-2xl w-20 h-20 flex items-center justify-center text-3xl mb-6 shadow-2xl shadow-blue-500/20">1ST</div>
-            <h1 class="text-4xl text-blue-500 mb-2 font-black tracking-tighter">Arc Indipay</h1>
-            <button onclick="connectWallet()" class="w-full max-w-xs bg-blue-600 py-4 rounded-2xl shadow-xl text-white font-black italic">CONNECT WALLET</button>
+
+    <div id="loginPage" class="page active flex flex-col items-center justify-center text-center">
+        <div class="bg-blue-600 w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-bold italic mb-6">1ST</div>
+        <h1 class="text-4xl text-blue-500 font-black italic mb-4">Arc Indipay</h1>
+        <button onclick="connectWallet()" class="w-full bg-blue-600 py-4 rounded-2xl font-black italic">CONNECT WALLET</button>
+    </div>
+
+    <div id="dashPage" class="page">
+        <div class="flex justify-between items-center mb-6 italic font-black">
+            <div class="flex items-center gap-2"><span class="bg-blue-600 px-2 py-0.5 rounded text-[10px]">1ST</span><span class="text-green-400 text-[10px]">LIVE</span></div>
+            <h2 class="text-blue-500">ARC INDIPAY</h2>
         </div>
 
-        <div id="dashboard" class="hidden">
-            <div class="flex justify-between items-center mb-6 uppercase italic font-bold">
-                <div class="flex items-center gap-2"><div class="bg-blue-600 text-white rounded px-2 py-0.5 text-[10px]">1ST</div><span class="text-[10px] text-green-400 font-bold uppercase">Live</span></div>
-                <h2 class="text-xl text-blue-500 font-black italic tracking-tighter">Arc Indipay</h2>
-            </div>
-
-            <div class="glass p-7 mb-6 bg-gradient-to-br from-blue-700 to-indigo-900 border-none shadow-2xl text-center font-bold italic uppercase text-white">
-                <p class="text-[9px] opacity-60 mb-2 font-mono tracking-widest">Address: <span id="walletAddrDisplay">0x...</span></p>
-                <div class="mt-4 tracking-tighter">
-                    <h1 class="text-5xl font-black tracking-tighter"><span id="usdcBalDisplay">0.00</span> <span class="text-2xl opacity-50">USDC</span></h1>
-                    <p class="text-xl font-bold mt-2 text-blue-300">≈ ₹<span id="inrBalDisplay">0.00</span></p>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-4 mb-8 text-center text-white font-bold italic uppercase">
-                <div onclick="alert('Transfer Logic Connected')" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-paper-plane text-2xl text-blue-400 mb-3"></i><div class="text-sm">Transfer</div></div>
-                <div onclick="openReceiveModal()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-qrcode text-2xl text-blue-400 mb-3"></i><div class="text-sm">Receive</div></div>
-            </div>
-
-            <div class="glass p-7 mb-6 border-blue-500/30 text-white font-bold italic uppercase">
-                <div class="flex items-center gap-3 mb-6"><i class="fa-solid fa-plane-departure text-blue-400"></i><h3 class="text-blue-400 text-sm font-black tracking-tighter">Travel & Transit</h3></div>
-                <div class="grid grid-cols-4 gap-2 text-center">
-                    <div onclick="openFlow('flight')" class="glass py-4 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-plane text-blue-400 text-lg"></i><div class="text-[8px]">Flight</div></div>
-                    <div onclick="openFlow('bus')" class="glass py-4 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-bus text-blue-400 text-lg"></i><div class="text-[8px]">Bus</div></div>
-                    <div onclick="openFlow('train')" class="glass py-4 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-train text-blue-400 text-lg"></i><div class="text-[8px]">Train</div></div>
-                    <div onclick="openFlow('hotel')" class="glass py-4 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-hotel text-blue-400 text-lg"></i><div class="text-[8px]">Hotel</div></div>
-                </div>
-            </div>
-
-            <div class="glass p-7 mb-8 border-blue-500/30 text-white font-bold italic uppercase">
-                <div class="flex items-center gap-3 mb-6"><i class="fa-bolt fa-solid text-blue-400"></i><h3 class="text-blue-400 text-sm font-black tracking-tighter">Utility & Recharge</h3></div>
-                <div class="grid grid-cols-4 gap-2 text-center">
-                    <div onclick="openFlow('mobile')" class="glass py-4 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-mobile-screen text-blue-400"></i><div class="text-[8px]">Mobile</div></div>
-                    <div onclick="openFlow('electricity')" class="glass py-4 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-lightbulb text-blue-400"></i><div class="text-[8px]">Electric</div></div>
-                    <div onclick="openFlow('dth')" class="glass py-4 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-tv text-blue-400"></i><div class="text-[8px]">DTH</div></div>
-                    <div onclick="openFlow('broadband')" class="glass py-4 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-wifi text-blue-400"></i><div class="text-[8px]">Broadband</div></div>
-                </div>
-            </div>
-
-            <div id="latestTxList" class="space-y-4 px-2"></div>
+        <div class="glass p-7 mb-6 bg-gradient-to-br from-blue-700 to-indigo-900 border-none text-center">
+            <p class="text-[9px] opacity-60 mb-2 font-mono">ADDR: <span id="walletAddr">0x...</span></p>
+            <h1 class="text-5xl font-black italic"><span id="usdcBalDisplay">0.00</span> <span class="text-2xl opacity-50">USDC</span></h1>
+            <p class="text-xl font-bold mt-2 text-blue-300">≈ ₹<span id="inrBalDisplay">0.00</span></p>
         </div>
 
-        <div id="flowModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden flex items-center justify-center p-6 z-50 overflow-y-auto">
-            <div class="glass p-7 w-full max-w-sm border-blue-500/30 text-white font-bold italic uppercase relative my-10">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 id="flowTitle" class="text-blue-400 italic font-black">SEARCH</h3>
-                    <button onclick="closeModal('flowModal')" class="text-2xl">&times;</button>
-                </div>
-
-                <div id="stepSearch" class="space-y-4">
-                    <div id="searchInputs" class="space-y-3"></div>
-                    <button onclick="runSearch()" class="w-full bg-blue-600 py-4 rounded-xl font-black italic">Search Results</button>
-                </div>
-
-                <div id="stepResults" class="hidden space-y-4">
-                    <p class="text-[8px] opacity-40 text-center uppercase tracking-widest italic">Available Options</p>
-                    <div id="resultsInject" class="space-y-3 max-h-80 overflow-y-auto pr-1"></div>
-                </div>
-
-                <div id="stepReview" class="hidden space-y-4 animate-in slide-in-from-bottom duration-300">
-                    <div id="reviewDetails" class="glass p-4 bg-white/5 text-[10px] space-y-2"></div>
-                    <div class="space-y-3">
-                        <p class="text-[10px] text-blue-400 italic" id="detailLabel">Passenger Details:</p>
-                        <input type="text" id="pName" placeholder="Full Name" class="w-full p-3 rounded-lg text-xs">
-                        <div class="flex gap-2">
-                            <input type="number" id="pAge" placeholder="Age" class="w-1/3 p-3 rounded-lg text-xs">
-                            <input type="text" id="pId" placeholder="ID Number" class="w-2/3 p-3 rounded-lg text-xs">
-                        </div>
-                        <input type="text" id="pAddr" placeholder="Address" class="w-full p-3 rounded-lg text-xs">
-                        <input type="email" id="pEmail" placeholder="Email" class="w-full p-3 rounded-lg text-xs">
-                    </div>
-                    <div class="pt-4 border-t border-white/10 text-center">
-                        <p class="text-[10px] text-blue-300 mb-4" id="finalPayLabel"></p>
-                        <button onclick="executePayment()" id="payBtn" class="w-full bg-green-600 py-5 rounded-2xl font-black italic uppercase tracking-widest text-lg">Confirm & Pay Amount</button>
-                    </div>
-                </div>
-            </div>
+        <div class="grid grid-cols-2 gap-4 mb-8">
+            <div onclick="alert('Manual Transfer Ready')" class="glass p-8 text-center"><i class="fa-solid fa-paper-plane text-2xl mb-2 text-blue-400"></i><p class="text-xs font-bold uppercase italic">Transfer</p></div>
+            <div onclick="openReceive()" class="glass p-8 text-center"><i class="fa-solid fa-qrcode text-2xl mb-2 text-blue-400"></i><p class="text-xs font-bold uppercase italic">Receive</p></div>
         </div>
 
-        <div id="successModal" class="fixed inset-0 bg-black/98 backdrop-blur-xl hidden flex items-center justify-center p-6 z-[100] animate-in zoom-in">
-            <div class="glass p-8 w-full max-w-sm success-card text-center font-bold italic uppercase text-white">
-                <h1 class="text-blue-400 text-3xl font-black mb-4 tracking-tighter italic">Congratulation!</h1>
-                <div class="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-green-500 shadow-2xl">
-                    <i class="fa-solid fa-check text-4xl text-green-500"></i>
-                </div>
-                <h2 class="text-white text-3xl font-extrabold mb-1">First</h2>
-                <h3 class="text-green-400 text-sm mb-6">Payment Successful</h3>
-                <div class="glass p-5 bg-white/5 text-left space-y-3 border-white/5 text-[10px]">
-                    <div class="flex justify-between"><span class="text-blue-300">Transaction:</span><span id="resDesc">---</span></div>
-                    <div class="flex justify-between pt-2 border-t border-white/5 font-black"><span class="text-blue-300">Amount:</span><span id="resAmt" class="text-green-400 text-lg">---</span></div>
-                </div>
-                <button onclick="location.reload()" class="w-full bg-blue-600 mt-8 py-4 rounded-xl font-black">Home</button>
-            </div>
+        <h3 class="text-blue-400 font-black italic text-sm mb-4 uppercase tracking-widest"><i class="fa-solid fa-plane-departure mr-2"></i>Travel & Transit</h3>
+        <div class="grid grid-cols-4 gap-2 text-center mb-8">
+            <div onclick="openSearch('flight')" class="glass py-4"><i class="fa-solid fa-plane text-blue-400"></i><p class="text-[8px] mt-1 font-bold italic">FLIGHT</p></div>
+            <div onclick="openSearch('bus')" class="glass py-4"><i class="fa-solid fa-bus text-blue-400"></i><p class="text-[8px] mt-1 font-bold italic">BUS</p></div>
+            <div onclick="openSearch('train')" class="glass py-4"><i class="fa-solid fa-train text-blue-400"></i><p class="text-[8px] mt-1 font-bold italic">TRAIN</p></div>
+            <div onclick="openSearch('hotel')" class="glass py-4"><i class="fa-solid fa-hotel text-blue-400"></i><p class="text-[8px] mt-1 font-bold italic">HOTEL</p></div>
         </div>
 
-        <div id="receiveModal" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center p-6 z-50 text-center">
-            <div class="glass p-8 w-full max-w-sm border-blue-500/30 text-white font-bold italic uppercase">
-                <h3 class="mb-6 text-blue-400 font-black">Receive USDC</h3>
-                <div id="qrcode" class="bg-white p-4 rounded-2xl inline-block mb-6 shadow-2xl shadow-blue-500/10"></div>
-                <p id="fullAddrDisplay" class="text-[10px] opacity-40 font-mono break-all mb-6 lowercase"></p>
-                <button onclick="copyAddr()" class="w-full bg-blue-600 py-4 rounded-xl font-black">Copy Address</button>
-            </div>
+        <h3 class="text-blue-400 font-black italic text-sm mb-4 uppercase tracking-widest"><i class="fa-solid fa-bolt mr-2"></i>Utility & Bill</h3>
+        <div class="grid grid-cols-4 gap-2 text-center">
+            <div onclick="alert('Utility Ready')" class="glass py-4"><i class="fa-solid fa-mobile-screen text-blue-400"></i><p class="text-[8px] mt-1 font-bold italic">MOBILE</p></div>
+            <div onclick="alert('Utility Ready')" class="glass py-4"><i class="fa-solid fa-lightbulb text-blue-400"></i><p class="text-[8px] mt-1 font-bold italic">ELECTRIC</p></div>
+            <div onclick="alert('Utility Ready')" class="glass py-4"><i class="fa-solid fa-tv text-blue-400"></i><p class="text-[8px] mt-1 font-bold italic">DTH</p></div>
+            <div onclick="alert('Utility Ready')" class="glass py-4"><i class="fa-solid fa-wifi text-blue-400"></i><p class="text-[8px] mt-1 font-bold italic">WIFI</p></div>
         </div>
     </div>
+
+    <div id="searchPage" class="page">
+        <button onclick="changePage('dashPage')" class="mb-6"><i class="fa-solid fa-arrow-left"></i></button>
+        <h2 id="searchType" class="text-2xl font-black italic uppercase mb-8">BOOK FLIGHTS</h2>
+        <div class="glass p-6 space-y-4">
+            <div id="searchFields"></div>
+            <input type="date" class="w-full p-4 rounded-xl text-xs">
+            <button onclick="runSearch()" class="w-full bg-purple-700 py-4 rounded-xl font-black italic uppercase">Search Now</button>
+        </div>
+    </div>
+
+    <div id="resultsPage" class="page bg-[#f2f5f8] !text-black">
+        <div class="flex items-center gap-4 mb-4 text-black">
+            <button onclick="changePage('searchPage')"><i class="fa-solid fa-arrow-left text-black"></i></button>
+            <div><p id="resRoute" class="font-black italic text-sm">CCU -> BOM</p><p class="text-[10px] opacity-60">26 Apr | 1 Traveller</p></div>
+        </div>
+        <div id="resultsInject"></div>
+        <div id="loader" class="loader-bar hidden"><div class="animate-spin h-4 w-4 border-2 border-green-500 rounded-full border-t-transparent"></div><span class="text-[10px] text-white italic">Getting available options...</span></div>
+    </div>
+
+    <div id="reviewPage" class="page">
+        <button onclick="changePage('resultsPage')" class="mb-6"><i class="fa-solid fa-arrow-left"></i></button>
+        <h2 class="text-xl font-black italic mb-6">REVIEW BOOKING</h2>
+        <div id="reviewInject" class="mb-6"></div>
+        <div class="glass p-6 space-y-3 mb-6">
+            <p class="text-blue-400 text-[10px] font-black italic uppercase">Traveller Details:</p>
+            <input type="text" id="pName" placeholder="Full Name" class="w-full p-3 rounded-lg text-xs">
+            <input type="text" id="pId" placeholder="ID Number (Aadhar/Passport)" class="w-full p-3 rounded-lg text-xs">
+            <input type="number" id="pAge" placeholder="Age" class="w-full p-3 rounded-lg text-xs">
+        </div>
+        <div class="fixed bottom-0 left-0 right-0 p-6 bg-[#030613] border-t border-white/10">
+            <p id="totalPriceLabel" class="text-center text-[10px] text-blue-300 mb-2 italic"></p>
+            <button onclick="executePayment()" id="finalPayBtn" class="w-full bg-green-600 py-4 rounded-2xl font-black text-lg uppercase shadow-2xl">Confirm & Pay</button>
+        </div>
+    </div>
+
+    <div id="successPage" class="page flex flex-col items-center justify-center">
+        <div class="glass p-8 w-full success-card text-center italic uppercase">
+            <h1 class="text-blue-400 text-3xl font-black mb-4">Congratulation!</h1>
+            <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-2xl"><i class="fa-solid fa-check text-4xl text-white"></i></div>
+            <h2 class="text-3xl font-black mb-1">First</h2>
+            <h3 class="text-green-400 font-bold mb-8">Booking Successful</h3>
+            <div class="glass p-5 text-left text-[10px] space-y-2 border-white/5">
+                <div class="flex justify-between"><span>Detail:</span><span id="resDesc">---</span></div>
+                <div class="flex justify-between font-black pt-2 border-t border-white/5"><span>Paid:</span><span id="resAmt" class="text-green-400 text-lg">---</span></div>
+            </div>
+            <button onclick="location.reload()" class="w-full bg-blue-600 mt-8 py-4 rounded-xl font-black">Back to Home</button>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>
