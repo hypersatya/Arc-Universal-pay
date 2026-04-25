@@ -1,7 +1,7 @@
 // --- CONFIGURATION ---
-const USDC_ADDR = "0x3600000000000000000000000000000000000000";
+const USDC_ADDR = "0x3600000000000000000000000000000000000000"; // Arc Testnet USDC
 const ARC_CHAIN_ID_HEX = "0x4cef52"; 
-const INR_RATE = 83.50;
+const INR_RATE = 83.50; 
 
 let userAddress = "";
 let provider, signer;
@@ -33,6 +33,7 @@ async function connectWallet() {
         provider = new ethers.providers.Web3Provider(window.ethereum);
         signer = provider.getSigner();
 
+        // UI Update (Header & Status)
         document.getElementById("walletAddr").innerText = userAddress.slice(0, 6) + "..." + userAddress.slice(-5).toUpperCase();
         document.getElementById("connectBtn").innerText = "Connected";
         
@@ -40,7 +41,7 @@ async function connectWallet() {
     } catch (e) { alert("Error: " + e.message); }
 }
 
-// 2. BALANCE & INR
+// 2. BALANCE FETCH
 async function fetchBalance() {
     try {
         const abi = ["function balanceOf(address) view returns (uint256)"];
@@ -56,54 +57,60 @@ function updateUI(amt) {
     document.getElementById("inrBal").innerText = (amt * INR_RATE).toLocaleString('en-IN');
 }
 
-// 3. SMART ROUTE LOGIC (Tera wala)
+// 3. TER LOGIC: SMART ROUTE
 function smartRoute(amount) {
-    // 50 se kam toh Direct, zyada toh Bridge
-    return amount < 50 ? "Direct Send" : "Bridge via CCTP";
+    if (amount < 50) {
+        return "Direct Send";
+    } else {
+        return "Bridge via CCTP";
+    }
 }
 
-// 4. TRANSACTION (Working Fix for OKX)
-async function sendTransaction() {
-    const to = document.getElementById("toAddress").value;
-    const amount = document.getElementById("sendAmount").value;
+// 4. WORKING SEND FUNCTION (With Logic & Blockchain Work)
+async function send() {
+    const to = document.getElementById("toAddress").value; // Input field id
+    const amount = document.getElementById("sendAmount").value; // Input field id
     const btn = document.getElementById("finalSendBtn");
 
+    if (!userAddress) return alert("Connect Wallet First!");
     if (!ethers.utils.isAddress(to)) return alert("Invalid Address!");
     if (!amount || amount <= 0) return alert("Enter Amount!");
 
+    // Apply Tera Routing Logic
+    const route = smartRoute(parseFloat(amount));
+    
     try {
-        btn.innerText = "PROCESSING...";
+        btn.innerText = "ROUTING: " + route.toUpperCase();
         btn.disabled = true;
 
-        const route = smartRoute(parseFloat(amount));
-        console.log("Routing via: " + route);
+        console.log(`Executing: ${route} for ${amount} USDC`);
 
         const abi = ["function transfer(address, uint256) returns (bool)"];
         const contract = new ethers.Contract(USDC_ADDR, abi, signer);
         
         const amountInUnits = ethers.utils.parseUnits(amount, 6);
 
-        // --- OKX WALLET FIX ---
-        // Hum manually gasLimit aur data pass karenge taaki wallet confuse na ho
+        // --- OKX WALLET GAS FIX ---
+        // Hum manually gasLimit bhej rahe hain taaki "Unknown Transaction" error na aaye
         const tx = await contract.transfer(to, amountInUnits, {
-            gasLimit: ethers.BigNumber.from("100000"), // Manual limit
-            gasPrice: await provider.getGasPrice()    // Network se current price uthao
+            gasLimit: ethers.BigNumber.from("120000"), 
+            gasPrice: await provider.getGasPrice()
         });
         
-        alert(`Route: ${route}\nTx Sent! Hash: ${tx.hash.slice(0,15)}...`);
+        alert(`Routing: ${route}\nTransaction Sent! Hash: ${tx.hash.slice(0,15)}...`);
         
         await tx.wait();
-        alert("Transaction Confirmed! ✅");
+        alert("Payment Confirmed! ✅");
+        
         document.getElementById("transferModal").classList.add("hidden");
         fetchBalance();
 
     } catch (e) {
         console.error(e);
-        // Agar gas error hai toh alert do
         if (e.message.includes("insufficient funds")) {
-            alert("Error: Aapke wallet mein Gas (USDC) nahi hai!");
+            alert("Error: Aapke wallet mein Fees (USDC) nahi hai!");
         } else {
-            alert("Transaction Failed! Code check console.");
+            alert("Transaction Reverted! Check if you have enough USDC.");
         }
     } finally {
         btn.innerText = "CONFIRM PAYMENT";
@@ -111,7 +118,7 @@ async function sendTransaction() {
     }
 }
 
-// Helper Functions
+// Modals
 function openTransfer() { if(userAddress) document.getElementById("transferModal").classList.remove("hidden"); else connectWallet(); }
 function closeTransfer() { document.getElementById("transferModal").classList.add("hidden"); }
 function updateInrPreview(val) { document.getElementById("previewInr").innerText = (val * INR_RATE).toLocaleString('en-IN'); }
