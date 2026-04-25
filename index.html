@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <title>ARC INDIPAY - FINAL FIX</title>
+    <title>ARC INDIPAY - V5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-    
     <style>
-        body { background: #030613; color: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; min-height: 100vh; margin: 0; overflow-x: hidden; }
+        body { background: #030613; color: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; min-height: 100vh; margin: 0; }
         .app-container { max-width: 480px; width: 100%; padding: 20px; }
         .glass { background: rgba(17, 25, 45, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; }
         .hidden { display: none !important; }
@@ -42,43 +41,55 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 mb-4 font-bold uppercase italic text-center text-white">
-                <div onclick="openTransfer()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-paper-plane text-2xl text-blue-400 mb-3"></i><div class="text-sm">Transfer</div></div>
+            <div class="grid grid-cols-2 gap-4 mb-4 text-center text-white font-bold italic uppercase">
+                <div onclick="openTransfer()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-paper-plane text-2xl text-blue-400 mb-3"></i><div class="text-xs">Transfer</div></div>
                 <div onclick="openReceive()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-qrcode text-2xl text-blue-400 mb-3"></i><div class="text-sm">Receive</div></div>
             </div>
-            <div class="grid grid-cols-2 gap-4 mb-8 font-bold uppercase italic text-center text-white">
-                <div onclick="startScanner()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-expand text-2xl text-blue-400 mb-3"></i><div class="text-sm">Scan & Pay</div></div>
-                <div onclick="openHistoryModal()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-clock-rotate-left text-2xl text-blue-400 mb-3"></i><div class="text-sm">History</div></div>
+            <div class="grid grid-cols-2 gap-4 mb-8 text-center text-white font-bold italic uppercase">
+                <div onclick="startScanner()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-expand text-2xl text-blue-400 mb-3"></i><div class="text-xs">Scan & Pay</div></div>
+                <div onclick="openHistoryModal()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-clock-rotate-left text-2xl text-blue-400 mb-3"></i><div class="text-xs">History</div></div>
+            </div>
+
+            <div class="glass p-7 mb-6 border-blue-500/30 text-white font-bold italic uppercase">
+                <div class="flex items-center gap-3 mb-6"><i class="fa-bolt fa-solid text-blue-400"></i><h3 class="text-blue-400 text-sm">Utility Payments</h3></div>
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <div onclick="setupBooking('mobile')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-mobile-screen text-blue-400"></i><div class="text-[10px]">Mobile</div></div>
+                    <div onclick="setupBooking('electricity')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-lightbulb text-blue-400"></i><div class="text-[10px]">Electric</div></div>
+                    <div onclick="setupBooking('dth')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-tv text-blue-400"></i><div class="text-[10px]">DTH</div></div>
+                    <div onclick="setupBooking('broadband')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-wifi text-blue-400"></i><div class="text-[10px]">Wifi</div></div>
+                </div>
             </div>
 
             <div class="glass p-7 mb-8 border-blue-500/30 text-white font-bold italic uppercase">
-                <div class="flex items-center gap-3 mb-6"><i class="fa-bolt fa-solid text-blue-400"></i><h3 class="text-blue-400 text-sm">Utility Payments</h3></div>
-                <div class="grid grid-cols-2 gap-4 text-center mb-6">
-                    <div onclick="setupUtility('mobile')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-mobile-screen text-blue-400"></i><div class="text-[10px]">Mobile</div></div>
-                    <div onclick="setupUtility('electricity')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-lightbulb text-blue-400"></i><div class="text-[10px]">Electric</div></div>
-                    <div onclick="setupUtility('dth')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-tv text-blue-400"></i><div class="text-[10px]">DTH</div></div>
-                    <div onclick="setupUtility('broadband')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-wifi text-blue-400"></i><div class="text-[10px]">Wifi</div></div>
+                <div class="flex items-center gap-3 mb-6"><i class="fa-solid fa-ticket text-blue-400"></i><h3 class="text-blue-400 text-sm">Ticket Bookings</h3></div>
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <div onclick="setupBooking('train')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2">
+                        <span class="text-xl">🚆</span><div class="text-[10px] mt-1">Train</div>
+                    </div>
+                    <div onclick="setupBooking('bus')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2">
+                        <span class="text-xl">🚌</span><div class="text-[10px] mt-1">Bus</div>
+                    </div>
+                    <div onclick="setupBooking('flight')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2">
+                        <span class="text-xl">✈️</span><div class="text-[10px] mt-1">Flight</div>
+                    </div>
+                    <div onclick="setupBooking('movie')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2">
+                        <span class="text-xl">🎬</span><div class="text-[10px] mt-1">Movie</div>
+                    </div>
                 </div>
-                <div id="utilityBox" class="hidden space-y-4">
-                    <p id="utilDetail" class="text-[10px] text-blue-300 lowercase italic opacity-80 text-center"></p>
-                    <input id="utilNumber" type="text" placeholder="ID / Number" class="w-full p-4 rounded-xl text-xs">
-                    <input id="utilAmount" type="number" placeholder="Amount (USDC)" class="w-full p-4 rounded-xl text-xl font-bold">
-                    <button onclick="payUtility()" class="w-full bg-blue-600 py-4 rounded-2xl active:scale-95 shadow-xl">Pay Utility Bill</button>
+
+                <div id="bookingBox" class="hidden mt-6 space-y-4 animate-in fade-in duration-300">
+                    <p id="bookDetail" class="text-[10px] text-blue-300 lowercase italic text-center"></p>
+                    <input id="bookId" type="text" placeholder="ID / Number" class="w-full p-4 rounded-xl text-xs">
+                    <input id="bookAmount" type="number" placeholder="Amount (USDC)" class="w-full p-4 rounded-xl text-xl font-bold">
+                    <button onclick="payBooking()" class="w-full bg-blue-600 py-4 rounded-2xl shadow-xl font-black italic">Pay & Book Now</button>
                 </div>
             </div>
 
             <div class="glass p-6 min-h-[160px] text-white">
                 <p class="text-[10px] font-bold opacity-30 mb-4 tracking-widest uppercase italic text-center">Latest Transactions</p>
                 <div id="latestTxList" class="space-y-4">
-                    <div class="text-center opacity-20 py-4 text-xs italic">Syncing...</div>
+                    <div class="text-center opacity-20 py-4 text-xs italic">Connecting...</div>
                 </div>
-            </div>
-        </div>
-        
-        <div id="scannerModal" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center p-6 z-[60]">
-            <div class="glass p-4 w-full max-w-sm border-blue-500/30">
-                <div id="reader" class="rounded-2xl overflow-hidden mb-4"></div>
-                <button onclick="stopScanner()" class="w-full py-3 bg-red-500/20 text-red-500 font-bold rounded-xl active:scale-95 uppercase italic">Cancel</button>
             </div>
         </div>
     </div>
