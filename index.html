@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Arc Universal Pay</title>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
+
+<style>
+body{
+  font-family: Arial;
+  background: linear-gradient(135deg,#0ea5e9,#1e3a8a);
+  color:white;
+  padding:20px;
+}
+
+.box{
+  max-width:400px;
+  margin:auto;
+}
+
+input,button{
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border-radius:10px;
+  border:none;
+}
+
+button{
+  cursor:pointer;
+}
+
+.connect{background:#22c55e;}
+.send{background:#3b82f6;}
+</style>
+
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>Arc Universal Pay 🚀</h2>
+
+<button class="connect" onclick="connect()">Connect Wallet</button>
+
+<p id="addr"></p>
+
+<h4 id="balance"></h4>
+
+<input id="amount" placeholder="Enter amount">
+
+<button class="send" onclick="send()">Send</button>
+
+</div>
+
+<script>
+
+let user;
+
+async function connect(){
+  if(!window.ethereum){
+    alert("Install MetaMask");
+    return;
+  }
+
+  const accounts = await window.ethereum.request({
+    method:"eth_requestAccounts"
+  });
+
+  user = accounts[0];
+  document.getElementById("addr").innerText = user;
+
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  const bal = await provider.getBalance(user);
+
+  document.getElementById("balance").innerText =
+    "Balance: " + ethers.formatEther(bal) + " ETH";
+}
+
+async function send(){
+  if(!user){
+    alert("Connect wallet first");
+    return;
+  }
+
+  const amount = document.getElementById("amount").value;
+
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  const signer = await provider.getSigner();
+
+  try{
+    const tx = await signer.sendTransaction({
+      to: user,
+      value: ethers.parseEther(amount || "0.001")
+    });
+
+    await tx.wait();
+
+    alert("Transaction Success 🚀");
+  }catch(e){
+    alert("Failed ❌");
+  }
+}
+
+</script>
+
+</body>
+</html>
