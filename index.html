@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <title>ARC INDIPAY - INDIA EDITION</title>
+    <title>ARC INDIPAY - POPUP EDITION</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -43,47 +43,18 @@
             </div>
 
             <div class="grid grid-cols-2 gap-4 mb-4 text-center text-white font-bold italic uppercase">
-                <div onclick="openTransfer()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-paper-plane text-2xl text-blue-400 mb-3"></i><div class="text-xs">Transfer</div></div>
+                <div onclick="openTransfer()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-paper-plane text-2xl text-blue-400 mb-3"></i><div class="text-sm">Transfer</div></div>
                 <div onclick="openReceive()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-qrcode text-2xl text-blue-400 mb-3"></i><div class="text-sm">Receive</div></div>
             </div>
+
             <div class="grid grid-cols-2 gap-4 mb-8 text-center text-white font-bold italic uppercase">
-                <div onclick="startScanner()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-expand text-2xl text-blue-400 mb-3"></i><div class="text-xs">Scan & Pay</div></div>
-                <div onclick="openHistoryModal()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-clock-rotate-left text-2xl text-blue-400 mb-3"></i><div class="text-xs">History</div></div>
+                <div onclick="startScanner()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-expand text-2xl text-blue-400 mb-3"></i><div class="text-sm">Scan & Pay</div></div>
+                <div onclick="openHistoryModal()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-clock-rotate-left text-2xl text-blue-400 mb-3"></i><div class="text-sm">History</div></div>
             </div>
 
             <div class="glass p-7 mb-6 border-blue-500/30 text-white font-bold italic uppercase">
                 <div class="flex items-center gap-3 mb-6"><i class="fa-bolt fa-solid text-blue-400"></i><h3 class="text-blue-400 text-sm">Utility Payments</h3></div>
                 <div class="grid grid-cols-2 gap-4 text-center">
-                    <div onclick="setupBooking('mobile')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-mobile-screen text-blue-400"></i><div class="text-[10px]">Mobile</div></div>
-                    <div onclick="setupBooking('electricity')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-lightbulb text-blue-400"></i><div class="text-[10px]">Electric</div></div>
-                    <div onclick="setupBooking('dth')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-tv text-blue-400"></i><div class="text-[10px]">DTH</div></div>
-                    <div onclick="setupBooking('broadband')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-wifi text-blue-400"></i><div class="text-[10px]">Broadband Bill</div></div>
-                </div>
-            </div>
-
-            <div class="glass p-7 mb-8 border-blue-500/30 text-white font-bold italic uppercase">
-                <div class="flex items-center gap-3 mb-6"><i class="fa-solid fa-ticket text-blue-400"></i><h3 class="text-blue-400 text-sm">Ticket Bookings</h3></div>
-                <div class="grid grid-cols-2 gap-4 text-center">
-                    <div onclick="setupBooking('train')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-train text-blue-400"></i><div class="text-[10px]">Train</div></div>
-                    <div onclick="setupBooking('bus')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-bus text-blue-400"></i><div class="text-[10px]">Bus</div></div>
-                    <div onclick="setupBooking('flight')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-plane text-blue-400"></i><div class="text-[10px]">Flight</div></div>
-                    <div onclick="setupBooking('movie')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-film text-blue-400"></i><div class="text-[10px]">Movie</div></div>
-                </div>
-
-                <div id="bookingBox" class="hidden mt-8 space-y-4 animate-in fade-in duration-300">
-                    <select id="operatorSelect" class="w-full p-4 rounded-xl text-xs font-bold"></select>
-                    <input id="bookId" type="text" class="w-full p-4 rounded-xl text-xs">
-                    <input id="bookAmount" type="number" placeholder="Amount (USDC)" class="w-full p-4 rounded-xl text-xl font-bold">
-                    <button onclick="payBooking()" class="w-full bg-blue-600 py-4 rounded-2xl shadow-xl font-black italic uppercase">Pay & Confirm</button>
-                </div>
-            </div>
-
-            <div class="glass p-6 min-h-[160px] text-white">
-                <p class="text-[10px] font-bold opacity-30 mb-4 tracking-widest uppercase italic text-center">Latest Transactions</p>
-                <div id="latestTxList" class="space-y-4"></div>
-            </div>
-        </div>
-    </div>
-    <script src="app.js"></script>
-</body>
-</html>
+                    <div onclick="openBookingPopup('mobile')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-mobile-screen text-blue-400"></i><div class="text-[10px]">Mobile</div></div>
+                    <div onclick="openBookingPopup('electricity')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-lightbulb text-blue-400"></i><div class="text-[10px]">Electric</div></div>
+                    <div onclick="open
