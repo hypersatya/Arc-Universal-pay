@@ -25,10 +25,9 @@ async function connectWallet() {
     document.getElementById("walletAddr").innerText = userAddress.slice(0, 6) + "..." + userAddress.slice(-5).toUpperCase();
     
     fetchBalance();
-    getHistory(5, "latestTxList"); // Dashboard history
+    getHistory(5, "latestTxList"); // Real-time fetch for dashboard
 }
 
-// FETCH REAL BLOCKCHAIN HISTORY
 async function getHistory(limit, targetId) {
     const list = document.getElementById(targetId);
     try {
@@ -48,7 +47,7 @@ async function getHistory(limit, targetId) {
             <div class="flex justify-between items-center border-b border-white/5 pb-3">
                 <div class="text-left">
                     <p class="text-blue-300 font-bold text-[10px]">To: ${log.args.to.slice(0,10)}...</p>
-                    <p class="opacity-30 text-[8px] uppercase font-bold">Confirmed On-Chain</p>
+                    <p class="opacity-30 text-[8px] uppercase font-bold italic">Success ✅</p>
                 </div>
                 <div class="text-right font-black italic uppercase">
                     <p class="text-white text-xs">-${val} USDC</p>
@@ -56,9 +55,7 @@ async function getHistory(limit, targetId) {
                 </div>
             </div>`;
         }).join('');
-    } catch (e) {
-        list.innerHTML = `<div class="text-center opacity-20 py-4">Blockchain Sync Failed</div>`;
-    }
+    } catch (e) { list.innerHTML = `<div class="text-center opacity-20 py-4 italic">Blockchain Syncing...</div>`; }
 }
 
 function openHistoryModal() {
@@ -66,23 +63,6 @@ function openHistoryModal() {
     getHistory(100, "fullHistoryList");
 }
 
-// SCANNER
-function startScanner() {
-    document.getElementById("scannerModal").classList.remove("hidden");
-    html5QrCode = new Html5Qrcode("reader");
-    html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (decodedText) => {
-        let addr = decodedText.replace("ethereum:", "").split("@")[0].trim();
-        if (ethers.utils.isAddress(addr)) {
-            stopScanner();
-            document.getElementById("transferModal").classList.remove("hidden");
-            document.getElementById("toAddress").value = addr;
-        }
-    }).catch(err => alert("Camera Error!"));
-}
-
-function stopScanner() { if(html5QrCode) html5QrCode.stop().then(() => document.getElementById("scannerModal").classList.add("hidden")); }
-
-// UTILITY PAY
 function setupUtility(type) {
     currentUtil = type;
     document.getElementById("utilityBox").classList.remove("hidden");
@@ -92,29 +72,25 @@ function setupUtility(type) {
 async function payUtility() {
     const amt = document.getElementById("utilAmount").value;
     const num = document.getElementById("utilNumber").value;
-    if(!amt || !num) return alert("Fill all details!");
-    
+    if(!amt || !num) return alert("Fill details!");
     try {
         const abi = ["function transfer(address, uint256) returns (bool)"];
         const contract = new ethers.Contract(USDC_ADDR, abi, signer);
         const tx = await contract.transfer(MERCHANT, ethers.utils.parseUnits(amt, 6), { gasLimit: 120000, type: 0 });
         await tx.wait();
-        alert(`${currentUtil.toUpperCase()} Bill Paid! ✅`);
+        alert(`${currentUtil.toUpperCase()} Bill Success ✅`);
         fetchBalance();
         getHistory(5, "latestTxList");
-    } catch (e) { alert("Payment Failed!"); }
+    } catch (e) { alert("Fail!"); }
 }
 
-// HELPERS
 async function fetchBalance() {
-    try {
-        const abi = ["function balanceOf(address) view returns (uint256)"];
-        const contract = new ethers.Contract(USDC_ADDR, abi, provider);
-        const bal = await contract.balanceOf(userAddress);
-        const f = ethers.utils.formatUnits(bal, 6);
-        document.getElementById("usdcBal").innerText = parseFloat(f).toFixed(2);
-        document.getElementById("inrBal").innerText = (f * INR).toLocaleString('en-IN');
-    } catch (e) { document.getElementById("usdcBal").innerText = "100.00"; }
+    const abi = ["function balanceOf(address) view returns (uint256)"];
+    const contract = new ethers.Contract(USDC_ADDR, abi, provider);
+    const bal = await contract.balanceOf(userAddress);
+    const f = ethers.utils.formatUnits(bal, 6);
+    document.getElementById("usdcBal").innerText = parseFloat(f).toFixed(2);
+    document.getElementById("inrBal").innerText = (f * INR).toLocaleString('en-IN');
 }
 
 function closeModal(id) { document.getElementById(id).classList.add("hidden"); }
@@ -127,3 +103,16 @@ function openReceive() {
     new QRCode(document.getElementById("qrcode"), { text: userAddress, width: 180, height: 180 });
 }
 function copyAddr() { navigator.clipboard.writeText(userAddress); alert("Copied! ✅"); }
+function startScanner() {
+    document.getElementById("scannerModal").classList.remove("hidden");
+    html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (t) => {
+        let a = t.replace("ethereum:", "").split("@")[0].trim();
+        if(ethers.utils.isAddress(a)) {
+            stopScanner();
+            document.getElementById("transferModal").classList.remove("hidden");
+            document.getElementById("toAddress").value = a;
+        }
+    }).catch(e => alert("Camera Error"));
+}
+function stopScanner() { if(html5QrCode) html5QrCode.stop().then(() => document.getElementById("scannerModal").classList.add("hidden")); }
