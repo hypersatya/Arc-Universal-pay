@@ -3,60 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <title>ARC INDIPAY - TIRANGA FIXED</title>
+    <title>ARC INDIPAY - OFFICIAL V1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
     <style>
-        /* Dark Tiranga Background */
         body { 
             background: linear-gradient(135deg, #2d1804 0%, #1a1a1a 50%, #051a05 100%) !important; 
-            color: #f0f2f5; font-family: sans-serif; margin: 0; padding: 0; min-height: 100vh;
-            display: flex; justify-content: center;
+            color: #f0f2f5; font-family: sans-serif; margin: 0; min-height: 100vh; display: flex; justify-content: center;
         }
-
-        /* Sabse Main Fix: App Container */
-        .app-container { 
-            width: 100%; 
-            max-width: 450px; /* Desktop pe mobile size dikhega */
-            min-height: 100vh;
-            background: rgba(0,0,0,0.3);
-            padding: 20px;
-            box-sizing: border-box;
-            border-left: 1px solid rgba(255,255,255,0.05);
-            border-right: 1px solid rgba(255,255,255,0.05);
-        }
-
+        .app-container { width: 100%; max-width: 450px; min-height: 100vh; background: rgba(0,0,0,0.2); padding: 20px; box-sizing: border-box; position: relative; }
         .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; }
-        
-        /* High Visibility Tiranga Text */
         .tiranga-text {
             background: linear-gradient(90deg, #FF9933 10%, #FFFFFF 50%, #138808 90%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             font-weight: 900; text-transform: uppercase; font-style: italic;
             filter: drop-shadow(2px 2px 1px rgba(0, 0, 0, 0.8));
         }
-
-        .logo-box {
-            display: flex; align-items: center; gap: 8px;
-            background: rgba(0, 0, 0, 0.4); padding: 8px 15px;
-            border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        /* Profile Dropdown */
+        .logo-box { display: flex; align-items: center; gap: 8px; background: rgba(0, 0, 0, 0.4); padding: 8px 15px; border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.1); }
         .dropdown { position: relative; }
-        .dropdown-menu { 
-            display: none; position: absolute; left: 0; top: 45px; 
-            background: #1a1a1a; min-width: 150px; border-radius: 12px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000; border: 1px solid rgba(255,255,255,0.1);
-        }
+        .dropdown-menu { display: none; position: absolute; left: 0; top: 45px; background: #1a1a1a; min-width: 150px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000; border: 1px solid rgba(255,255,255,0.1); }
         .dropdown-menu button { width: 100%; text-align: left; padding: 12px 15px; font-size: 10px; font-weight: bold; color: white; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .show { display: block !important; }
-
-        input { background: rgba(255,255,255,0.1) !important; color: white !important; outline: none; width: 100%; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
-        .bottom-pay { position: fixed; bottom: 0; width: 100%; max-width: 450px; background: #000080; padding: 20px; z-index: 100; text-align: center; border-radius: 24px 24px 0 0; display: none; }
-        .hidden { display: none !important; }
+        input { background: rgba(255,255,255,0.1) !important; color: white !important; outline: none; width: 100%; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); font-weight: bold; }
+        .bottom-pay { position: fixed; bottom: 0; width: 100%; max-width: 450px; background: #000080; padding: 20px; z-index: 100; text-align: center; border-radius: 24px 24px 0 0; display: none; box-shadow: 0 -10px 20px rgba(0,0,0,0.3); }
+        .flight-item { background: white; color: #333; border-radius: 16px; padding: 15px; margin-bottom: 12px; cursor: pointer; }
     </style>
 </head>
 <body onload="autoConnect()">
@@ -66,7 +38,7 @@
             <div class="dropdown">
                 <button id="walletBtn" onclick="toggleMenu()" class="glass py-2 px-4 flex items-center gap-2 text-[10px] font-black uppercase text-white">
                     <span id="dot" class="bg-red-500 w-2 h-2 rounded-full"></span>
-                    <span id="walletLabel">Connect</span>
+                    <span id="walletLabel">Connect Wallet</span>
                     <i class="fa-solid fa-caret-down opacity-50"></i>
                 </button>
                 <div id="profileMenu" class="dropdown-menu">
@@ -74,29 +46,39 @@
                     <button onclick="location.reload()">Disconnect</button>
                 </div>
             </div>
-            
             <div class="logo-box">
                 <h2 class="tiranga-text text-lg tracking-tighter">Arc Indipay</h2>
                 <img src="logo.png" class="w-6 h-6 object-contain">
             </div>
         </div>
 
-        <div class="glass p-8 mb-8 text-center shadow-2xl">
-            <p class="text-[9px] opacity-40 mb-2 uppercase tracking-widest">Arc Network (Testnet)</p>
-            <h1 class="text-5xl font-black italic tracking-tighter"><span id="usdcBal">0.00</span> <span class="text-2xl opacity-30">USDC</span></h1>
-            <p class="text-xl font-bold mt-2 text-blue-300">≈ ₹<span id="inrBal">0.00</span></p>
-        </div>
+        <div id="dashboardView">
+            <div class="glass p-8 mb-8 text-center shadow-2xl">
+                <p class="text-[9px] opacity-40 mb-2 uppercase tracking-widest">Arc Network (POL/USDC)</p>
+                <h1 class="text-5xl font-black italic tracking-tighter"><span id="usdcBal">0.00</span> <span class="text-2xl opacity-30">USDC</span></h1>
+                <p class="text-xl font-bold mt-2 text-blue-300">≈ ₹<span id="inrBal">0.00</span></p>
+            </div>
 
-        <div class="grid grid-cols-2 gap-4 mb-4">
-            <div onclick="alert('Ready')" class="glass p-8 text-center active:scale-95"><i class="fa-solid fa-paper-plane text-2xl mb-3 text-orange-400"></i><p class="text-[10px] font-black italic">SEND</p></div>
-            <div onclick="openReceive()" class="glass p-8 text-center active:scale-95"><i class="fa-solid fa-qrcode text-2xl mb-3 text-blue-400"></i><p class="text-[10px] font-black italic">RECEIVE</p></div>
-        </div>
-        <div class="grid grid-cols-2 gap-4 mb-10">
-            <div onclick="alert('Ready')" class="glass p-8 text-center active:scale-95"><i class="fa-solid fa-expand text-2xl mb-3 text-green-400"></i><p class="text-[10px] font-black italic">SCAN & PAY</p></div>
-            <div onclick="alert('Ready')" class="glass p-8 text-center active:scale-95"><i class="fa-solid fa-clock-rotate-left text-2xl mb-3 opacity-30"></i><p class="text-[10px] font-black italic">HISTORY</p></div>
-        </div>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div onclick="alert('Send Ready')" class="glass p-8 text-center active:scale-95"><i class="fa-solid fa-paper-plane text-2xl mb-3 text-orange-400"></i><p class="text-[10px] font-black italic">SEND</p></div>
+                <div onclick="alert('Receive Ready')" class="glass p-8 text-center active:scale-95"><i class="fa-solid fa-qrcode text-2xl mb-3 text-blue-400"></i><p class="text-[10px] font-black italic">RECEIVE</p></div>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-10">
+                <div onclick="alert('Scanner Ready')" class="glass p-8 text-center active:scale-95"><i class="fa-solid fa-expand text-2xl mb-3 text-green-400"></i><p class="text-[10px] font-black italic">SCAN & PAY</p></div>
+                <div onclick="alert('History Ready')" class="glass p-8 text-center active:scale-95"><i class="fa-solid fa-clock-rotate-left text-2xl mb-3 opacity-30"></i><p class="text-[10px] font-black italic">HISTORY</p></div>
+            </div>
 
-        <div class="glass p-6 mb-6">
-            <h3 class="text-blue-400 font-black italic text-xs mb-5 uppercase tracking-widest">Bookings & Tickets</h3>
-            <div class="grid grid-cols-4 gap-2 text-center">
-                <div onclick="openBooking('flight')" class="glass py-4"><i class="fa-solid fa-plane text-orange-4
+            <div class="glass p-6 mb-6">
+                <h3 class="text-blue-400 font-black italic text-xs mb-5 uppercase tracking-widest">Bookings & Tickets</h3>
+                <div class="grid grid-cols-4 gap-2 text-center">
+                    <div onclick="openService('flight')" class="glass py-4 active:scale-90"><i class="fa-solid fa-plane text-orange-400"></i><p class="text-[8px] font-black mt-1">FLIGHT</p></div>
+                    <div onclick="openService('bus')" class="glass py-4 active:scale-90"><i class="fa-solid fa-bus text-green-400"></i><p class="text-[8px] font-black mt-1">BUS</p></div>
+                    <div onclick="openService('train')" class="glass py-4 active:scale-90"><i class="fa-solid fa-train text-orange-400"></i><p class="text-[8px] font-black mt-1">TRAIN</p></div>
+                    <div onclick="openService('hotel')" class="glass py-4 active:scale-90"><i class="fa-solid fa-hotel text-green-400"></i><p class="text-[8px] font-black mt-1">HOTEL</p></div>
+                </div>
+            </div>
+
+            <div class="glass p-6 mb-10">
+                <h3 class="text-blue-400 font-black italic text-xs mb-5 uppercase tracking-widest">Bills & Recharges</h3>
+                <div class="grid grid-cols-4 gap-2 text-center">
+                    <div onclick="openService
