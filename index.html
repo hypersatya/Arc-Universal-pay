@@ -1,51 +1,118 @@
-const INR_RATE = 83.50; // Current Rate
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <title>ARC INDIPAY - FINAL V7</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <style>
+        body { background: #030613; color: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; min-height: 100vh; margin: 0; overflow-x: hidden; }
+        .app-container { max-width: 480px; width: 100%; padding: 20px; }
+        .glass { background: rgba(17, 25, 45, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; }
+        .hidden { display: none !important; }
+        .tool-btn { cursor: pointer; transition: 0.2s; }
+        .tool-btn:active { transform: scale(0.95); background: rgba(59, 92, 255, 0.1); }
+        
+        /* Dark UI Fixes */
+        select { background: #11192d !important; color: white !important; appearance: none; outline: none; border: 1px solid rgba(255,255,255,0.1) !important; }
+        option { background: #11192d; color: white; }
+        input { outline: none; color: white; background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; }
+        
+        .plan-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); transition: 0.2s; cursor: pointer; }
+        .plan-card.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div id="loginScreen" class="flex flex-col items-center justify-center min-h-[80vh] text-center font-bold italic uppercase">
+            <div class="bg-blue-600 text-white rounded-2xl w-20 h-20 flex items-center justify-center text-3xl mb-6 shadow-2xl">1ST</div>
+            <h1 class="text-4xl text-blue-500 mb-2 font-black tracking-tighter italic">Arc Indipay</h1>
+            <button onclick="connectWallet()" class="w-full max-w-xs bg-blue-600 py-4 rounded-2xl shadow-xl text-white font-black italic">CONNECT WALLET</button>
+        </div>
 
-function checkTypeAndShow() {
-    const box = document.getElementById("customAmountBox");
-    const plans = document.getElementById("plansBox");
-    const payBtn = document.getElementById("finalPayBtn");
+        <div id="dashboard" class="hidden">
+            <div class="flex justify-between items-center mb-6 uppercase italic font-bold">
+                <div class="flex items-center gap-2"><div class="bg-blue-600 text-white rounded px-2 py-0.5 text-[10px]">1ST</div><span class="text-[10px] text-green-400 font-bold uppercase">Live</span></div>
+                <h2 class="text-xl text-blue-500 font-black">Arc Indipay</h2>
+            </div>
 
-    if (currentType === 'mobile') {
-        // Mobile ke liye plans dikhao
-        box.classList.add("hidden");
-        plans.classList.remove("hidden");
-        payBtn.classList.add("hidden"); // Plan select hone par dikhega
-        loadPlans();
-    } else {
-        // DTH, Electricity, Broadband ke liye manual amount
-        plans.classList.add("hidden");
-        box.classList.remove("hidden");
-        payBtn.classList.remove("hidden");
-        document.getElementById("customInr").value = ""; // Reset
-        document.getElementById("convertedUsdc").innerText = "0.00";
-    }
-}
+            <div class="glass p-7 mb-6 bg-gradient-to-br from-blue-700 to-indigo-900 border-none shadow-2xl text-center">
+                <p class="text-[9px] opacity-60 mb-2 font-mono uppercase tracking-widest text-white">Wallet: <span id="walletAddr">0x...</span></p>
+                <div class="mt-4 font-bold italic text-white uppercase tracking-tighter">
+                    <h1 class="text-5xl font-black tracking-tighter"><span id="usdcBal">0.00</span> <span class="text-2xl opacity-50">USDC</span></h1>
+                    <p class="text-xl font-bold mt-2 text-blue-300">≈ ₹<span id="inrBal">0.00</span></p>
+                </div>
+            </div>
 
-// INR ko USDC mein badalne ka logic
-function convertToUsdc(inrVal) {
-    if (!inrVal || inrVal <= 0) {
-        document.getElementById("convertedUsdc").innerText = "0.00";
-        selectedUsdc = 0;
-        return;
-    }
-    const usdc = (inrVal / INR_RATE).toFixed(2);
-    document.getElementById("convertedUsdc").innerText = usdc;
-    selectedUsdc = usdc; // Payment ke liye value save
-}
+            <div class="grid grid-cols-2 gap-4 mb-4 text-center text-white font-bold italic uppercase">
+                <div onclick="openTransfer()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-paper-plane text-2xl text-blue-400 mb-3"></i><div class="text-sm tracking-tighter">Transfer</div></div>
+                <div onclick="openReceive()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-qrcode text-2xl text-blue-400 mb-3"></i><div class="text-sm tracking-tighter">Receive</div></div>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mb-8 text-center text-white font-bold italic uppercase">
+                <div onclick="startScanner()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-expand text-2xl text-blue-400 mb-3"></i><div class="text-xs tracking-tighter">Scan & Pay</div></div>
+                <div onclick="openHistoryModal()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-clock-rotate-left text-2xl text-blue-400 mb-3"></i><div class="text-xs tracking-tighter">History</div></div>
+            </div>
 
-// openPopup function mein reset logic
-function openPopup(type) {
-    currentType = type;
-    document.getElementById("bookingModal").classList.remove("hidden");
-    document.getElementById("modalTitle").innerText = type.toUpperCase();
-    document.getElementById("targetId").placeholder = labels[type];
-    
-    const opSelect = document.getElementById("operatorSelect");
-    opSelect.innerHTML = `<option disabled selected>Select Provider</option>`;
-    operators[type].forEach(op => { opSelect.innerHTML += `<option value="${op}">${op}</option>`; });
+            <div class="glass p-7 mb-6 border-blue-500/30 text-white font-bold italic uppercase">
+                <div class="flex items-center gap-3 mb-6"><i class="fa-bolt fa-solid text-blue-400"></i><h3 class="text-blue-400 text-sm tracking-wider font-black">Utility Payments</h3></div>
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <div onclick="openPopup('mobile')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-mobile-screen text-blue-400"></i><div class="text-[10px] tracking-tighter">Mobile</div></div>
+                    <div onclick="openPopup('electricity')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-lightbulb text-blue-400"></i><div class="text-[10px] tracking-tighter">Electric</div></div>
+                    <div onclick="openPopup('dth')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-tv text-blue-400"></i><div class="text-[10px] tracking-tighter">DTH</div></div>
+                    <div onclick="openPopup('broadband')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-wifi text-blue-400"></i><div class="text-[10px] tracking-tighter">Broadband</div></div>
+                </div>
+            </div>
 
-    // Hide everything on start
-    document.getElementById("customAmountBox").classList.add("hidden");
-    document.getElementById("plansBox").classList.add("hidden");
-    document.getElementById("finalPayBtn").classList.add("hidden");
-}
+            <div class="glass p-7 mb-8 border-blue-500/30 text-white font-bold italic uppercase">
+                <div class="flex items-center gap-3 mb-6"><i class="fa-solid fa-ticket text-blue-400"></i><h3 class="text-blue-400 text-sm tracking-wider font-black">Ticket Booking</h3></div>
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <div onclick="openPopup('train')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-train text-blue-400"></i><div class="text-[10px] tracking-tighter">Train</div></div>
+                    <div onclick="openPopup('bus')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-bus text-blue-400"></i><div class="text-[10px] tracking-tighter">Bus</div></div>
+                    <div onclick="openPopup('flight')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-plane text-blue-400"></i><div class="text-[10px] tracking-tighter">Flight</div></div>
+                    <div onclick="openPopup('movie')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-film text-blue-400"></i><div class="text-[10px] tracking-tighter">Movie</div></div>
+                </div>
+            </div>
+
+            <div class="glass p-6 min-h-[160px] text-white">
+                <p class="text-[10px] font-bold opacity-30 mb-4 tracking-widest uppercase italic text-center">Latest Transactions</p>
+                <div id="latestTxList" class="space-y-4"></div>
+            </div>
+        </div>
+
+        <div id="bookingModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden flex items-center justify-center p-6 z-50">
+            <div class="glass p-7 w-full max-w-sm border-blue-500/30 text-white font-bold italic uppercase">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 id="modalTitle" class="text-blue-400 italic font-black">PAYMENT</h3>
+                    <button onclick="closeModal('bookingModal')" class="text-2xl font-bold">&times;</button>
+                </div>
+                <div id="modalContent" class="space-y-4">
+                    <input id="targetId" type="text" class="w-full p-4 rounded-xl text-xs" placeholder="Consumer ID / Number">
+                    <select id="operatorSelect" onchange="checkTypeAndShow()" class="w-full p-4 rounded-xl text-xs font-bold"></select>
+                    
+                    <div id="customAmountBox" class="hidden space-y-4 animate-in fade-in">
+                        <div class="relative">
+                            <span class="absolute left-4 top-4 text-blue-400 font-bold">₹</span>
+                            <input id="customInr" type="number" oninput="convertToUsdc(this.value)" placeholder="Enter Amount" class="w-full p-4 pl-8 rounded-xl text-xl font-bold">
+                        </div>
+                        <p class="text-center text-[11px] font-bold italic text-blue-300">
+                            Equivalent: <span id="convertedUsdc">0.00</span> USDC
+                        </p>
+                    </div>
+
+                    <div id="plansBox" class="hidden">
+                        <p class="text-[8px] opacity-40 mb-2 italic">Select Plan:</p>
+                        <div id="plansList" class="max-h-48 overflow-y-auto space-y-2 pr-1"></div>
+                    </div>
+
+                    <button onclick="executeFinalPayment()" id="finalPayBtn" class="w-full bg-blue-600 py-4 rounded-2xl shadow-xl font-black italic uppercase tracking-widest hidden">Confirm Payment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
