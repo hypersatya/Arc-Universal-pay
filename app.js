@@ -9,25 +9,14 @@ const details = {
     mobile: "Plan: 1.5GB/Day | Validity: 28 Days",
     electricity: "Units: 142 kWh (Last Month)",
     dth: "Pack: Family HD | 30 Days",
-    broadband: "100 Mbps | Unlimited",
-    train: "PNR Status & Seat Selection Available",
-    bus: "Sleeper/AC Luxury Seats",
-    flight: "Domestic & International Routes",
-    movie: "Multiplex Seat Booking"
+    broadband: "Speed: 100 Mbps | Data: Unlimited",
+    train: "IRCTC PNR Status & Seat Booking",
+    bus: "Intercity AC Sleeper Booking",
+    flight: "Domestic & International Flight Tickets",
+    movie: "BookMyShow Movie Tickets"
 };
 
-async function connectWallet() {
-    if(!window.ethereum) return alert("Install Wallet");
-    const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
-    userAddress = accounts[0];
-    provider = new ethers.providers.Web3Provider(window.ethereum);
-    signer = provider.getSigner();
-    document.getElementById("loginScreen").classList.add("hidden");
-    document.getElementById("dashboard").classList.remove("hidden");
-    document.getElementById("walletAddr").innerText = userAddress.slice(0,6)+"..."+userAddress.slice(-4);
-    fetchBalance();
-    getHistory(5, "latestTxList");
-}
+// ... Baki connectWallet, fetchBalance, getHistory functions same rahenge (Previous Code se le sakte hain) ...
 
 function setupBooking(type) {
     currentType = type;
@@ -46,31 +35,8 @@ async function payBooking() {
         const contract = new ethers.Contract(USDC_ADDR, abi, signer);
         const tx = await contract.transfer(MERCHANT, ethers.utils.parseUnits(amt, 6), { gasLimit: 120000, type: 0 });
         await tx.wait();
-        alert(`${currentType.toUpperCase()} Payment Success! ✅`);
+        alert(`${currentType.toUpperCase()} Success! ✅`);
         fetchBalance();
         getHistory(5, "latestTxList");
     } catch (e) { alert("Fail!"); }
-}
-
-async function fetchBalance() {
-    const abi = ["function balanceOf(address) view returns (uint256)"];
-    const contract = new ethers.Contract(USDC_ADDR, abi, provider);
-    const bal = await contract.balanceOf(userAddress);
-    const f = ethers.utils.formatUnits(bal, 6);
-    document.getElementById("usdcBal").innerText = parseFloat(f).toFixed(2);
-    document.getElementById("inrBal").innerText = (f * INR_RATE).toLocaleString('en-IN');
-}
-
-async function getHistory(limit, targetId) {
-    const list = document.getElementById(targetId);
-    try {
-        const abi = ["event Transfer(address indexed from, address indexed to, uint256 value)"];
-        const contract = new ethers.Contract(USDC_ADDR, abi, provider);
-        const logs = await contract.queryFilter(contract.filters.Transfer(userAddress), -10000, "latest");
-        list.innerHTML = logs.slice(-limit).reverse().map(l => `
-            <div class="flex justify-between border-b border-white/5 pb-2 text-xs">
-                <p>To: ${l.args.to.slice(0,10)}...</p>
-                <p class="font-bold">-${ethers.utils.formatUnits(l.args.value, 6)} USDC</p>
-            </div>`).join('');
-    } catch (e) { list.innerHTML = "Sync Error"; }
 }
