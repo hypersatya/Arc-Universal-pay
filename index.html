@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <title>ARC INDIPAY - FINAL V6</title>
+    <title>ARC INDIPAY - INDIA EDITION</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -16,33 +16,34 @@
         .hidden { display: none !important; }
         .tool-btn { cursor: pointer; transition: 0.2s; }
         .tool-btn:active { transform: scale(0.95); background: rgba(59, 92, 255, 0.1); }
-        input { outline: none; color: white; background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; }
+        input, select { outline: none; color: white; background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; }
+        option { background: #030613; color: white; }
     </style>
 </head>
 <body>
     <div class="app-container">
         <div id="loginScreen" class="flex flex-col items-center justify-center min-h-[80vh] text-center font-bold italic uppercase">
-            <div class="bg-blue-600 text-white rounded-2xl w-20 h-20 flex items-center justify-center text-3xl mb-6 shadow-2xl shadow-blue-500/20">1ST</div>
-            <h1 class="text-4xl text-blue-500 mb-2 font-black tracking-tighter">Arc Indipay</h1>
+            <div class="bg-blue-600 text-white rounded-2xl w-20 h-20 flex items-center justify-center text-3xl mb-6 shadow-2xl">1ST</div>
+            <h1 class="text-4xl text-blue-500 mb-2 font-black italic">Arc Indipay</h1>
             <button onclick="connectWallet()" class="w-full max-w-xs bg-blue-600 py-4 rounded-2xl shadow-xl text-white font-black italic">CONNECT WALLET</button>
         </div>
 
         <div id="dashboard" class="hidden">
             <div class="flex justify-between items-center mb-6 uppercase italic font-bold">
-                <div class="flex items-center gap-2"><div class="bg-blue-600 text-white rounded px-2 py-0.5 text-[10px]">1ST</div><span class="text-[10px] text-green-400">Live</span></div>
+                <div class="flex items-center gap-2"><div class="bg-blue-600 text-white rounded px-2 py-0.5 text-[10px]">1ST</div><span class="text-[10px] text-green-400 font-bold uppercase">Live</span></div>
                 <h2 class="text-xl text-blue-500 font-black">Arc Indipay</h2>
             </div>
 
             <div class="glass p-7 mb-6 bg-gradient-to-br from-blue-700 to-indigo-900 border-none shadow-2xl text-center">
-                <p class="text-[9px] opacity-60 mb-2 font-mono uppercase tracking-widest text-white">Address: <span id="walletAddr">0x...</span></p>
+                <p class="text-[9px] opacity-60 mb-2 font-mono uppercase tracking-widest text-white">Wallet: <span id="walletAddr">0x...</span></p>
                 <div class="mt-4 font-bold italic text-white uppercase tracking-tighter">
                     <h1 class="text-5xl font-black tracking-tighter"><span id="usdcBal">0.00</span> <span class="text-2xl opacity-50">USDC</span></h1>
-                    <p class="text-xl font-bold mt-2 text-blue-300">≈ ₹<span id="inrBal">0.00</span></p>
+                    <p class="text-xl mt-2 text-blue-300">≈ ₹<span id="inrBal">0.00</span></p>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4 mb-4 text-center text-white font-bold italic uppercase">
-                <div onclick="openTransfer()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-paper-plane text-2xl text-blue-400 mb-3"></i><div class="text-sm">Transfer</div></div>
+                <div onclick="openTransfer()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-paper-plane text-2xl text-blue-400 mb-3"></i><div class="text-xs">Transfer</div></div>
                 <div onclick="openReceive()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-qrcode text-2xl text-blue-400 mb-3"></i><div class="text-sm">Receive</div></div>
             </div>
             <div class="grid grid-cols-2 gap-4 mb-8 text-center text-white font-bold italic uppercase">
@@ -63,33 +64,23 @@
             <div class="glass p-7 mb-8 border-blue-500/30 text-white font-bold italic uppercase">
                 <div class="flex items-center gap-3 mb-6"><i class="fa-solid fa-ticket text-blue-400"></i><h3 class="text-blue-400 text-sm">Ticket Bookings</h3></div>
                 <div class="grid grid-cols-2 gap-4 text-center">
-                    <div onclick="setupBooking('train')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2">
-                        <i class="fa-solid fa-train text-blue-400"></i><div class="text-[10px]">Train</div>
-                    </div>
-                    <div onclick="setupBooking('bus')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2">
-                        <i class="fa-solid fa-bus text-blue-400"></i><div class="text-[10px]">Bus</div>
-                    </div>
-                    <div onclick="setupBooking('flight')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2">
-                        <i class="fa-solid fa-plane text-blue-400"></i><div class="text-[10px]">Flight</div>
-                    </div>
-                    <div onclick="setupBooking('movie')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2">
-                        <i class="fa-solid fa-film text-blue-400"></i><div class="text-[10px]">Movie</div>
-                    </div>
+                    <div onclick="setupBooking('train')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-train text-blue-400"></i><div class="text-[10px]">Train</div></div>
+                    <div onclick="setupBooking('bus')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-bus text-blue-400"></i><div class="text-[10px]">Bus</div></div>
+                    <div onclick="setupBooking('flight')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-plane text-blue-400"></i><div class="text-[10px]">Flight</div></div>
+                    <div onclick="setupBooking('movie')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-film text-blue-400"></i><div class="text-[10px]">Movie</div></div>
                 </div>
 
-                <div id="bookingBox" class="hidden mt-6 space-y-4 animate-in fade-in duration-300">
-                    <p id="bookDetail" class="text-[10px] text-blue-300 lowercase italic text-center"></p>
-                    <input id="bookId" type="text" placeholder="Details" class="w-full p-4 rounded-xl text-xs">
+                <div id="bookingBox" class="hidden mt-8 space-y-4 animate-in fade-in duration-300">
+                    <select id="operatorSelect" class="w-full p-4 rounded-xl text-xs font-bold"></select>
+                    <input id="bookId" type="text" class="w-full p-4 rounded-xl text-xs">
                     <input id="bookAmount" type="number" placeholder="Amount (USDC)" class="w-full p-4 rounded-xl text-xl font-bold">
-                    <button onclick="payBooking()" class="w-full bg-blue-600 py-4 rounded-2xl shadow-xl font-black italic">Pay & Book Now</button>
+                    <button onclick="payBooking()" class="w-full bg-blue-600 py-4 rounded-2xl shadow-xl font-black italic uppercase">Pay & Confirm</button>
                 </div>
             </div>
 
             <div class="glass p-6 min-h-[160px] text-white">
                 <p class="text-[10px] font-bold opacity-30 mb-4 tracking-widest uppercase italic text-center">Latest Transactions</p>
-                <div id="latestTxList" class="space-y-4">
-                    <div class="text-center opacity-20 py-4 text-xs italic">Connecting...</div>
-                </div>
+                <div id="latestTxList" class="space-y-4"></div>
             </div>
         </div>
     </div>
