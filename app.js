@@ -1,49 +1,32 @@
-let user;
+let userAddress = "";
 
-// 🔗 CONNECT WALLET
-async function connect(){
-  if(!window.ethereum){
-    alert("Install MetaMask");
-    return;
+async function connectWallet() {
+  if (window.ethereum) {
+    const accounts = await window.ethereum.request({
+      method: "eth_requestAccounts",
+    });
+    userAddress = accounts[0];
+
+    document.getElementById("status").innerText =
+      "Connected: " + userAddress;
+  } else {
+    alert("Install wallet");
   }
-
-  const accounts = await window.ethereum.request({
-    method:"eth_requestAccounts"
-  });
-
-  user = accounts[0];
-
-  document.getElementById("addr").innerText = user;
-
-  const provider = new ethers.BrowserProvider(window.ethereum);
-  const bal = await provider.getBalance(user);
-
-  document.getElementById("balance").innerText =
-    "Balance: " + ethers.formatEther(bal) + " ETH";
 }
 
-// 💸 SEND ETH
-async function send(){
-  if(!user){
-    alert("Connect wallet first");
-    return;
+function smartRoute(amount) {
+  if (amount < 50) {
+    return "Direct Send";
+  } else {
+    return "Bridge via CCTP";
   }
+}
 
+function send() {
   const amount = document.getElementById("amount").value;
 
-  const provider = new ethers.BrowserProvider(window.ethereum);
-  const signer = await provider.getSigner();
+  const route = smartRoute(amount);
 
-  try{
-    const tx = await signer.sendTransaction({
-      to: user,
-      value: ethers.parseEther(amount || "0.001")
-    });
-
-    await tx.wait();
-
-    alert("Transaction Success 🚀");
-  }catch(e){
-    alert("Failed ❌");
-  }
+  document.getElementById("status").innerText =
+    "Routing: " + route + " → " + amount + " USDC";
 }
