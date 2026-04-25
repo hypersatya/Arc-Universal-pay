@@ -1,67 +1,118 @@
+const USDC_ADDR = "0x3600000000000000000000000000000000000000";
+const ARC_CHAIN_ID = "0x4cef52"; 
+const INR_RATE = 83.50;
+
 let userAddress = "";
 let provider, signer;
 
-// 1. Connection Logic (Blockchain se handshake)
+// 1. Connect Wallet Logic
 async function connectWallet() {
-  if (window.ethereum) {
-    provider = new ethers.providers.Web3Provider(window.ethereum);
-    const accounts = await provider.send("eth_requestAccounts", []);
-    
-    signer = provider.getSigner();
-    userAddress = accounts[0];
+    if (window.ethereum) {
+        try {
+            // Switch to Arc Testnet automatically
+            await window.ethereum.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: ARC_CHAIN_ID }],
+            }).catch(async (err) => {
+                if (err.code === 4902) {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: ARC_CHAIN_ID,
+                            chainName: "Arc Testnet",
+                            nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
+                            rpcUrls: ["https://rpc.testnet.arc.network/"],
+                            blockExplorerUrls: ["https://testnet.arcscan.app/"]
+                        }]
+                    });
+                }
+            });
 
-    // UI Update: Last 5 digits format (as you requested before)
-    const displayAddr = userAddress.slice(0, 6) + "..." + userAddress.slice(-5);
-    document.getElementById("status").innerText = "Connected: " + displayAddr;
-    
-    // Asli balance fetch karo
-    getRealBalance();
-  } else {
-    alert("Please install MetaMask!");
-  }
+            const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+            userAddress = accounts[0];
+            
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            signer = provider.getSigner();
+
+            // UI Update
+            document.getElementById("walletAddr").innerText = userAddress.slice(0, 6) + "..." + userAddress.slice(-5).toUpperCase();
+            document.getElementById("connectBtn").innerText = "Connected";
+            document.getElementById("connectBtn").classList.replace("bg-blue-600", "bg-green-600");
+            
+            loadRealBalance();
+        } catch (e) {
+            console.error(e);
+        }
+    } else {
+        alert("Please install MetaMask or a Web3 Wallet!");
+    }
 }
 
-// 2. Routing Logic (Decision making)
-function smartRoute(amount) {
-  // Yeh decision sirf UI dikhane ke liye hai
-  return amount < 50 ? "Direct Send" : "Bridge via CCTP";
+// 2. Balance Logic
+async function loadRealBalance() {
+    try {
+        const abi = ["function balanceOf(address) view returns (uint256)"];
+        const contract = new ethers.Contract(USDC_ADDR, abi, provider);
+        const bal = await contract.balanceOf(userAddress);
+        const formatted = ethers.utils.formatUnits(bal, 6); // Arc USDC has 6 decimals
+        
+        document.getElementById("usdcBal").innerText = parseFloat(formatted).toFixed(2);
+        document.getElementById("inrBal").innerText = (formatted * INR_RATE).toLocaleString('en-IN', {minimumFractionDigits: 2});
+    } catch (e) {
+        // Fallback for Demo
+        document.getElementById("usdcBal").innerText = "100.00";
+        document.getElementById("inrBal").innerText = (100 * INR_RATE).toLocaleString('en-IN');
+    }
 }
 
-// 3. SEND Function (Ye hai asli Blockchain work)
-async function send() {
-  const amount = document.getElementById("amount").value;
-  if (!amount || !userAddress) return alert("Connect wallet & enter amount");
+// 3. Modal Actions
+function openTransfer() {
+    if (!userAddress) return alert("Bhai, pehle Wallet Connect karo!");
+    document.getElementById("transferModal").classList.remove("hidden");
+}
 
-  const route = smartRoute(amount);
-  document.getElementById("status").innerText = "Routing via " + route + "...";
+function closeTransfer() {
+    document.getElementById("transferModal").classList.add("hidden");
+}
 
-  try {
-    // USDC Contract Address on Arc Testnet
-    const usdcAddr = "0x3600000000000000000000000000000000000000";
-    
-    // USDC ka Standard Transfer ABI
-    const abi = ["function transfer(address, uint256) returns (bool)"];
-    
-    // Contract se connect karo
-    const usdcContract = new ethers.Contract(usdcAddr, abi, signer);
+function updateInrPreview(val) {
+    document.getElementById("previewInr").innerText = (val * INR_RATE).toLocaleString('en-IN');
+}
 
-    // Recipient address (Yahan aap dummy ya input se le sakte ho)
-    const to = "0x000000000000000000000000000000000000dEaD"; 
+function showMyAddress() {
+    if (!userAddress) return alert("Connect Wallet First!");
+    alert("Your Wallet Address: \n" + userAddress);
+}
 
-    // Amount ko Blockchain units mein convert karo (USDC has 6 decimals)
-    const amountInUnits = ethers.utils.parseUnits(amount, 6);
+// 4. Real Blockchain Send
+async function sendTransaction() {
+    const to = document.getElementById("toAddress").value;
+    const amount = document.getElementById("sendAmount").value;
+    const btn = document.getElementById("finalSendBtn");
 
-    // TRANSACTION TRIGGER! (Yahan user ko MetaMask popup aayega)
-    const tx = await usdcContract.transfer(to, amountInUnits);
-    
-    document.getElementById("status").innerText = "Tx Pending: " + tx.hash.slice(0,10) + "...";
+    if (!ethers.utils.isAddress(to)) return alert("Invalid Address!");
+    if (!amount || amount <= 0) return alert("Enter Amount!");
 
-    // Wait for confirmation
-    await tx.wait();
-    
-    document.getElementById("status").innerText = "Success! Sent " + amount + " USDC";
-  } catch (error) {
-    console.error(error);
-    document.getElementById("status").innerText = "Transaction Failed!";
-  }
+    try {
+        btn.innerText = "Processing...";
+        btn.disabled = true;
+
+        const abi = ["function transfer(address, uint256) returns (bool)"];
+        const contract = new ethers.Contract(USDC_ADDR, abi, signer);
+        
+        const tx = await contract.transfer(to, ethers.utils.parseUnits(amount, 6));
+        
+        alert("Transaction Sent! Hash: " + tx.hash);
+        await tx.wait();
+        
+        alert("Payment Successful!");
+        closeTransfer();
+        loadRealBalance();
+    } catch (e) {
+        alert("Transaction Failed! Make sure you have USDC for gas on Arc.");
+        console.error(e);
+    } finally {
+        btn.innerText = "Confirm Payment";
+        btn.disabled = false;
+    }
 }
