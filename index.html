@@ -3,158 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <title>ARC INDIPAY - TRIRANGA EDITION</title>
+    <title>ARC INDIPAY - TIRANGA FIXED</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-    
     <style>
-        /* 1. Indian Flag Gradient Background */
+        /* Dark Tiranga Background */
         body { 
-            background: linear-gradient(160deg, #FF9933 0%, #FFFFFF 50%, #138808 100%) !important; 
-            color: #000; font-family: sans-serif; margin: 0; padding: 0; min-height: 100vh;
-        }
-        
-        .app-container { max-width: 480px; margin: 0 auto; padding: 20px; box-sizing: border-box; }
-        
-        /* 2. Glass Cards (Adaptable) */
-        .glass { background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(15px); border: 1px solid rgba(0,0,0,0.05); border-radius: 24px; color: #000; }
-        
-        /* 3. Tiranga Text Gradient for Name */
-        .tiranga-text {
-            background: linear-gradient(90deg, #FF9933 0%, #FFFFFF 40%, #000080 50%, #FFFFFF 60%, #138808 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 900;
+            background: linear-gradient(135deg, #2d1804 0%, #1a1a1a 50%, #051a05 100%) !important; 
+            color: #f0f2f5; font-family: sans-serif; margin: 0; padding: 0; min-height: 100vh;
+            display: flex; justify-content: center;
         }
 
+        /* Sabse Main Fix: App Container */
+        .app-container { 
+            width: 100%; 
+            max-width: 450px; /* Desktop pe mobile size dikhega */
+            min-height: 100vh;
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            box-sizing: border-box;
+            border-left: 1px solid rgba(255,255,255,0.05);
+            border-right: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; }
+        
+        /* High Visibility Tiranga Text */
+        .tiranga-text {
+            background: linear-gradient(90deg, #FF9933 10%, #FFFFFF 50%, #138808 90%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            font-weight: 900; text-transform: uppercase; font-style: italic;
+            filter: drop-shadow(2px 2px 1px rgba(0, 0, 0, 0.8));
+        }
+
+        .logo-box {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(0, 0, 0, 0.4); padding: 8px 15px;
+            border-radius: 15px; border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Profile Dropdown */
+        .dropdown { position: relative; }
+        .dropdown-menu { 
+            display: none; position: absolute; left: 0; top: 45px; 
+            background: #1a1a1a; min-width: 150px; border-radius: 12px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 1000; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .dropdown-menu button { width: 100%; text-align: left; padding: 12px 15px; font-size: 10px; font-weight: bold; color: white; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .show { display: block !important; }
+
+        input { background: rgba(255,255,255,0.1) !important; color: white !important; outline: none; width: 100%; padding: 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
+        .bottom-pay { position: fixed; bottom: 0; width: 100%; max-width: 450px; background: #000080; padding: 20px; z-index: 100; text-align: center; border-radius: 24px 24px 0 0; display: none; }
         .hidden { display: none !important; }
-        .tool-btn { cursor: pointer; transition: 0.2s; }
-        .tool-btn:active { transform: scale(0.95); background: rgba(0,0,0,0.05); }
-        
-        /* 4. Booking Result Cards */
-        .booking-item { background: white; color: #000; border-radius: 16px; padding: 18px; margin-bottom: 12px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        
-        /* 5. Inputs */
-        input, select { background: rgba(255, 255, 255, 0.6) !important; border: 1px solid rgba(0,0,0,0.1) !important; color: #000 !important; outline: none; width: 100%; padding: 15px; border-radius: 12px; margin-bottom: 10px; }
-        
-        /* 6. Matic Color Bottom Bar */
-        .bottom-pay { position: fixed; bottom: 0; left: 0; right: 0; background: #8247E5; padding: 20px; border-top: 2px solid rgba(255,255,255,0.1); z-index: 100; text-align: center; color: white; border-radius: 24px 24px 0 0; box-shadow: 0 -5px 20px rgba(130, 71, 229, 0.3); display: none; }
-        
-        /* 7. Dropdown */
-        .dropdown { position: relative; display: inline-block; }
-        .dropdown-content { display: none; position: absolute; left: 0; background-color: #f9f9f9; min-width: 120px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1000; border-radius: 8px; overflow: hidden; }
-        .dropdown-content a { color: black; padding: 12px 16px; text-decoration: none; display: block; font-size: 10px; font-weight: bold; text-transform: uppercase; }
-        .dropdown-content a:hover { background-color: #f1f1f1; }
-        .show { display: block; }
     </style>
 </head>
-<body onload="autoInit()">
+<body onload="autoConnect()">
 
     <div class="app-container">
-        <div class="flex justify-between items-center mb-8 pb-4 border-b border-black/5">
-            <h2 class="tiranga-text font-black italic tracking-tighter text-2xl uppercase">Arc Indipay</h2>
-            
+        <div class="flex justify-between items-center mb-8">
             <div class="dropdown">
-                <button onclick="toggleWalletMenu()" class="glass py-2 px-4 flex items-center gap-2 text-xs font-bold active:scale-95">
+                <button id="walletBtn" onclick="toggleMenu()" class="glass py-2 px-4 flex items-center gap-2 text-[10px] font-black uppercase text-white">
                     <span id="dot" class="bg-red-500 w-2 h-2 rounded-full"></span>
-                    <span id="walletLabel">Disconnect</span>
-                    <i class="fa-solid fa-caret-down text-[10px] opacity-50"></i>
+                    <span id="walletLabel">Connect</span>
+                    <i class="fa-solid fa-caret-down opacity-50"></i>
                 </button>
-                <div id="myDropdown" class="dropdown-content">
-                    <a href="#" onclick="copyAddr()"><i class="fa-solid fa-copy mr-2"></i>Copy ADDR</a>
-                    <a href="#" onclick="fetchBalance()"><i class="fa-solid fa-sync mr-2"></i>Refresh</a>
-                    <a href="#" onclick="location.reload()" class="text-red-600"><i class="fa-solid fa-power-off mr-2"></i>Exit App</a>
+                <div id="profileMenu" class="dropdown-menu">
+                    <button onclick="copyAddr()">Copy Address</button>
+                    <button onclick="location.reload()">Disconnect</button>
                 </div>
+            </div>
+            
+            <div class="logo-box">
+                <h2 class="tiranga-text text-lg tracking-tighter">Arc Indipay</h2>
+                <img src="logo.png" class="w-6 h-6 object-contain">
             </div>
         </div>
 
-        <div class="glass p-8 mb-8 text-center shadow-lg border-white/30" style="background: rgba(255,255,255,0.6);">
-            <p class="text-[10px] opacity-60 mb-2 font-mono uppercase tracking-widest">Matic Network (POL/USDC)</p>
-            <h1 class="text-5xl font-black italic tracking-tighter text-black"><span id="usdcBal">0.00</span> <span class="text-2xl opacity-40">USDC</span></h1>
-            <p class="text-xl font-bold mt-2 text-[#000080]">≈ ₹<span id="inrBal">0.00</span></p>
+        <div class="glass p-8 mb-8 text-center shadow-2xl">
+            <p class="text-[9px] opacity-40 mb-2 uppercase tracking-widest">Arc Network (Testnet)</p>
+            <h1 class="text-5xl font-black italic tracking-tighter"><span id="usdcBal">0.00</span> <span class="text-2xl opacity-30">USDC</span></h1>
+            <p class="text-xl font-bold mt-2 text-blue-300">≈ ₹<span id="inrBal">0.00</span></p>
         </div>
 
         <div class="grid grid-cols-2 gap-4 mb-4">
-            <div onclick="openTransfer()" class="glass p-8 text-center tool-btn"><i class="fa-solid fa-paper-plane text-3xl mb-3 text-[#FF9933]"></i><p class="text-xs font-black uppercase italic">Send</p></div>
-            <div onclick="openReceiveModal()" class="glass p-8 text-center tool-btn"><i class="fa-solid fa-qrcode text-3xl mb-3 text-[#000080]"></i><p class="text-xs font-black uppercase italic">Receive</p></div>
+            <div onclick="alert('Ready')" class="glass p-8 text-center active:scale-95"><i class="fa-solid fa-paper-plane text-2xl mb-3 text-orange-400"></i><p class="text-[10px] font-black italic">SEND</p></div>
+            <div onclick="openReceive()" class="glass p-8 text-center active:scale-95"><i class="fa-solid fa-qrcode text-2xl mb-3 text-blue-400"></i><p class="text-[10px] font-black italic">RECEIVE</p></div>
         </div>
-        <div class="grid grid-cols-2 gap-4 mb-8">
-            <div onclick="alert('Scanner Ready')" class="glass p-8 text-center tool-btn"><i class="fa-solid fa-expand text-3xl mb-3 text-[#138808]"></i><p class="text-xs font-black uppercase italic">Scan & Pay</p></div>
-            <div onclick="alert('History Ready')" class="glass p-8 text-center tool-btn"><i class="fa-solid fa-clock-rotate-left text-3xl mb-3 opacity-60"></i><p class="text-xs font-black uppercase italic">History</p></div>
+        <div class="grid grid-cols-2 gap-4 mb-10">
+            <div onclick="alert('Ready')" class="glass p-8 text-center active:scale-95"><i class="fa-solid fa-expand text-2xl mb-3 text-green-400"></i><p class="text-[10px] font-black italic">SCAN & PAY</p></div>
+            <div onclick="alert('Ready')" class="glass p-8 text-center active:scale-95"><i class="fa-solid fa-clock-rotate-left text-2xl mb-3 opacity-30"></i><p class="text-[10px] font-black italic">HISTORY</p></div>
         </div>
 
         <div class="glass p-6 mb-6">
-            <h3 class="text-[#000080] font-black italic text-sm mb-5 uppercase tracking-widest"><i class="fa-solid fa-map-location-dot mr-3"></i>Bookings & Tickets</h3>
-            <div class="grid grid-cols-4 gap-3 text-center">
-                <div onclick="startBooking('flight')" class="glass py-5 tool-btn"><i class="fa-solid fa-plane text-[#FF9933] text-xl"></i><p class="text-[9px] mt-2 font-black italic">FLIGHT</p></div>
-                <div onclick="startBooking('bus')" class="glass py-5 tool-btn"><i class="fa-solid fa-bus text-[#138808] text-xl"></i><p class="text-[9px] mt-2 font-black italic">BUS</p></div>
-                <div onclick="startBooking('train')" class="glass py-5 tool-btn"><i class="fa-solid fa-train text-[#FF9933] text-xl"></i><p class="text-[9px] mt-2 font-black italic">TRAIN</p></div>
-                <div onclick="startBooking('hotel')" class="glass py-5 tool-btn"><i class="fa-solid fa-hotel text-[#138808] text-xl"></i><p class="text-[9px] mt-2 font-black italic">HOTEL</p></div>
-            </div>
-        </div>
-
-        <div class="glass p-6 mb-10">
-            <h3 class="text-[#000080] font-black italic text-sm mb-5 uppercase tracking-widest"><i class="fa-solid fa-bolt mr-3"></i>Bills & Recharges</h3>
-            <div class="grid grid-cols-4 gap-3 text-center">
-                <div onclick="startBooking('mobile')" class="glass py-5 tool-btn"><i class="fa-solid fa-mobile-screen text-[#FF9933] text-xl"></i><p class="text-[9px] mt-2 font-black italic">MOBILE</p></div>
-                <div onclick="startBooking('electricity')" class="glass py-5 tool-btn"><i class="fa-solid fa-lightbulb text-[#138808] text-xl"></i><p class="text-[9px] mt-2 font-black italic">ELECTRIC</p></div>
-                <div onclick="startBooking('dth')" class="glass py-5 tool-btn"><i class="fa-solid fa-tv text-[#FF9933] text-xl"></i><p class="text-[9px] mt-2 font-black italic">DTH</p></div>
-                <div onclick="startBooking('broadband')" class="glass py-5 tool-btn"><i class="fa-solid fa-wifi text-[#138808] text-xl"></i><p class="text-[9px] mt-2 font-black italic">WIFI</p></div>
-            </div>
-        </div>
-
-        <div id="bookingUI" class="hidden pb-40">
-            <div class="flex justify-between items-center mb-4">
-                <h2 id="serviceTitle" class="text-[#000080] font-black italic uppercase">RESULTS</h2>
-                <button onclick="location.reload()" class="text-xs font-bold text-red-600">X Cancel</button>
-            </div>
-            
-            <div id="resultsInject"></div>
-
-            <div id="passengerForm" class="glass p-6 space-y-3 hidden">
-                <p class="text-[#FF9933] text-[10px] font-black italic uppercase tracking-widest">Traveller Details:</p>
-                <input type="text" id="pName" placeholder="Full Name">
-                <input type="number" id="pAge" placeholder="Age">
-            </div>
-        </div>
-
-        <div class="glass p-6 text-center font-bold italic uppercase tracking-widest">
-            <p class="text-[10px] opacity-40 mb-3">On-Chain Transactions</p>
-            <div id="txList" class="space-y-2 text-[10px] text-left"></div>
-        </div>
-
-        <div class="text-center py-10 opacity-30 text-xs font-black italic">Powered by Matic PoS</div>
-    </div>
-
-    <div id="bottomPay" class="bottom-pay">
-        <p id="totalLabel" class="text-white text-xs font-bold italic mb-3 opacity-90"></p>
-        <button onclick="finalPay()" id="payBtn" class="w-full bg-white py-5 rounded-2xl font-black text-xl uppercase italic shadow-2xl text-[#8247E5] active:scale-95 transition-all">Confirm Booking</button>
-    </div>
-
-    <div id="successModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden flex items-center justify-center p-6 z-[200]">
-        <div class="glass p-10 w-full text-center italic uppercase shadow-2xl animate-in zoom-in" style="background: linear-gradient(135deg, #FF9933 0%, #FFFFFF 50%, #138808 100%);">
-            <h1 class="text-[#000080] text-3xl font-black mb-6 tracking-tighter">Jai Hind!</h1>
-            <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl border-4 border-[#000080]"><i class="fa-solid fa-check text-5xl text-[#138808]"></i></div>
-            <h2 class="text-4xl font-black mb-1 text-black">Booking</h2>
-            <h3 class="text-black font-black text-lg mb-10 tracking-widest opacity-80">Successful</h3>
-            <div class="glass p-6 text-left text-xs space-y-3 border-black/5 font-bold" style="background: rgba(255,255,255,0.8); color: black;">
-                <div class="flex justify-between"><span>Service:</span><span id="resDesc" class="font-black text-[#000080]">---</span></div>
-                <div class="flex justify-between font-black pt-3 border-t border-black/10"><span>Paid:</span><span id="resAmt" class="text-[#138808] text-xl font-black">---</span></div>
-            </div>
-            <button onclick="location.reload()" class="w-full bg-[#000080] mt-10 py-5 rounded-2xl font-black text-white text-lg active:scale-95">Back to Home</button>
-        </div>
-    </div>
-
-    <div id="receiveModal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center p-6 z-50">
-        <div class="glass p-10 w-full text-center">
-            <button onclick="closeModal('receiveModal')" class="absolute top-4 right-4 text-xl">&times;</button>
-            <h3 class="font-black mb-6 uppercase text-[#000080]">Receive USDC</h3>
-            <div id="qrcode" class="bg-white p-4 rounded-xl inline-block mb-6 shadow-xl"></div>
-            <p id="fullAddrDisplay" class="text-[10px] font-mono opacity-60 mb-6 break-all lowercase"></p>
-            <button onclick="copyAddr()" class="w-full bg-[#000080] text-white py-4 rounded-xl font-black">Copy Address</button>
-        </div>
-    </div>
-
-    <script src="app.js"></script>
-</body>
-</html>
+            <h3 class="text-blue-400 font-black italic text-xs mb-5 uppercase tracking-widest">Bookings & Tickets</h3>
+            <div class="grid grid-cols-4 gap-2 text-center">
+                <div onclick="openBooking('flight')" class="glass py-4"><i class="fa-solid fa-plane text-orange-4
