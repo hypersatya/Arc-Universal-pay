@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <title>ARC INDIPAY - FINAL FIX</title>
+    <title>ARC INDIPAY - FULL VERSION</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -17,9 +17,8 @@
         .tool-btn { cursor: pointer; transition: 0.2s; }
         .tool-btn:active { transform: scale(0.95); background: rgba(59, 92, 255, 0.1); }
         select { background: #11192d !important; color: white !important; appearance: none; outline: none; border: 1px solid rgba(255,255,255,0.1) !important; }
-        option { background: #11192d; color: white; }
         input { outline: none; color: white; background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; }
-        .plan-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); transition: 0.2s; cursor: pointer; padding: 15px; border-radius: 12px; }
+        .plan-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); transition: 0.2s; cursor: pointer; padding: 16px; border-radius: 12px; }
         .plan-card.active { border-color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
     </style>
 </head>
@@ -37,16 +36,16 @@
                 <h2 class="text-xl text-blue-500 font-black tracking-tighter">Arc Indipay</h2>
             </div>
 
-            <div class="glass p-7 mb-6 bg-gradient-to-br from-blue-700 to-indigo-900 border-none shadow-2xl text-center text-white italic uppercase font-bold">
-                <p class="text-[9px] opacity-60 mb-2 font-mono uppercase tracking-widest">Wallet: <span id="walletAddr">0x...</span></p>
+            <div class="glass p-7 mb-6 bg-gradient-to-br from-blue-700 to-indigo-900 border-none shadow-2xl text-center font-bold italic uppercase">
+                <p class="text-[9px] opacity-60 mb-2 font-mono tracking-widest text-white">Wallet: <span id="walletAddr">0x...</span></p>
                 <div class="mt-4 tracking-tighter">
                     <h1 class="text-5xl font-black tracking-tighter"><span id="usdcBal">0.00</span> <span class="text-2xl opacity-50">USDC</span></h1>
-                    <p class="text-xl font-bold mt-2 text-blue-300">≈ ₹<span id="inrBal">0.00</span></p>
+                    <p class="text-xl mt-2 text-blue-300">≈ ₹<span id="inrBal">0.00</span></p>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4 mb-4 text-center text-white font-bold italic uppercase">
-                <div onclick="alert('Transfer Coming Soon')" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-paper-plane text-2xl text-blue-400 mb-3"></i><div class="text-sm">Transfer</div></div>
+                <div onclick="alert('Manual Transfer coming soon')" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-paper-plane text-2xl text-blue-400 mb-3"></i><div class="text-sm">Transfer</div></div>
                 <div onclick="openReceive()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-qrcode text-2xl text-blue-400 mb-3"></i><div class="text-sm">Receive</div></div>
             </div>
             <div class="grid grid-cols-2 gap-4 mb-8 text-center text-white font-bold italic uppercase">
@@ -65,52 +64,68 @@
             </div>
 
             <div class="glass p-7 mb-8 border-blue-500/30 text-white font-bold italic uppercase">
-                <div class="flex items-center gap-3 mb-6"><i class="fa-solid fa-ticket text-blue-400"></i><h3 class="text-blue-400 text-sm tracking-wider font-black">Ticket Booking</h3></div>
-                <div class="grid grid-cols-2 gap-4 text-center">
-                    <div onclick="openPopup('train')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-train text-blue-400"></i><div class="text-[10px]">Train</div></div>
-                    <div onclick="openPopup('bus')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-bus text-blue-400"></i><div class="text-[10px]">Bus</div></div>
-                    <div onclick="openPopup('flight')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-plane text-blue-400"></i><div class="text-[10px]">Flight</div></div>
-                    <div onclick="openPopup('movie')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-film text-blue-400"></i><div class="text-[10px]">Movie</div></div>
+                <div class="flex items-center gap-3 mb-6"><i class="fa-solid fa-plane text-blue-400"></i><h3 class="text-blue-400 text-sm tracking-wider font-black">Travel & Transit</h3></div>
+                <div class="grid grid-cols-4 gap-2 text-center">
+                    <div onclick="openPopup('flight')" class="glass py-4 tool-btn border-white/5 flex flex-col items-center gap-2">
+                        <i class="fa-solid fa-plane text-blue-400 text-lg"></i><div class="text-[8px]">Flight</div>
+                    </div>
+                    <div onclick="openPopup('bus')" class="glass py-4 tool-btn border-white/5 flex flex-col items-center gap-2">
+                        <i class="fa-solid fa-bus text-blue-400 text-lg"></i><div class="text-[8px]">Bus</div>
+                    </div>
+                    <div onclick="openPopup('train')" class="glass py-4 tool-btn border-white/5 flex flex-col items-center gap-2">
+                        <i class="fa-solid fa-train text-blue-400 text-lg"></i><div class="text-[8px]">Train</div>
+                    </div>
+                    <div onclick="openPopup('hotel')" class="glass py-4 tool-btn border-white/5 flex flex-col items-center gap-2">
+                        <i class="fa-solid fa-hotel text-blue-400 text-lg"></i><div class="text-[8px]">Hotel</div>
+                    </div>
                 </div>
             </div>
 
             <div class="glass p-6 min-h-[160px] text-white">
-                <p class="text-[10px] font-bold opacity-30 mb-4 tracking-widest uppercase italic text-center">Latest Transactions</p>
+                <p class="text-[10px] font-bold opacity-30 mb-4 uppercase italic text-center">Latest Transactions</p>
                 <div id="latestTxList" class="space-y-4"></div>
             </div>
         </div>
 
         <div id="bookingModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden flex items-center justify-center p-6 z-50">
             <div class="glass p-7 w-full max-w-sm border-blue-500/30 text-white font-bold italic uppercase">
-                <div class="flex justify-between items-center mb-6"><h3 id="modalTitle" class="text-blue-400 italic font-black">PAYMENT</h3><button onclick="closeModal('bookingModal')" class="text-2xl font-bold">&times;</button></div>
-                <div class="space-y-4">
-                    <input id="targetId" type="text" class="w-full p-4 rounded-xl text-xs" placeholder="ID / Number">
-                    <select id="operatorSelect" onchange="checkTypeAndShow()" class="w-full p-4 rounded-xl text-xs font-bold"></select>
-                    <div id="customAmountBox" class="hidden space-y-4 animate-in fade-in">
-                        <div class="relative"><span class="absolute left-4 top-4 text-blue-400 font-bold">₹</span><input id="customInr" type="number" oninput="convertToUsdc(this.value)" placeholder="Amount" class="w-full p-4 pl-8 rounded-xl text-xl font-bold"></div>
-                        <p class="text-center text-[11px] font-bold italic text-blue-300">≈ <span id="convertedUsdc">0.00</span> USDC</p>
+                <div class="flex justify-between items-center mb-6"><h3 id="modalTitle" class="text-blue-400 italic font-black">BOOKING</h3><button onclick="closeModal('bookingModal')" class="text-2xl font-bold">&times;</button></div>
+                
+                <div id="searchFields" class="space-y-3 mb-4"></div>
+                
+                <select id="operatorSelect" onchange="checkTypeAndShow()" class="w-full p-4 rounded-xl text-xs font-bold mb-4"></select>
+
+                <div id="amountInputBox" class="hidden space-y-4">
+                    <div class="relative">
+                        <span class="absolute left-4 top-4 text-blue-400 font-bold">₹</span>
+                        <input id="customInr" type="number" oninput="convertToUsdc(this.value)" placeholder="Enter Amount" class="w-full p-4 pl-8 rounded-xl text-xl font-bold">
                     </div>
-                    <div id="plansBox" class="hidden"><p class="text-[8px] opacity-40 mb-2 italic">Select Plan:</p><div id="plansList" class="max-h-48 overflow-y-auto space-y-2 pr-1"></div></div>
-                    <button onclick="executeFinalPayment()" id="finalPayBtn" class="w-full bg-blue-600 py-4 rounded-2xl shadow-xl font-black italic uppercase tracking-widest hidden">Confirm Payment</button>
+                    <p class="text-center text-[10px] text-blue-300 italic">≈ <span id="convertedUsdc">0.00</span> USDC</p>
                 </div>
+
+                <div id="plansBox" class="hidden">
+                    <p class="text-[8px] opacity-40 mb-2 italic text-center">Select Recharge Plan:</p>
+                    <div id="plansList" class="max-h-48 overflow-y-auto space-y-2 pr-1"></div>
+                </div>
+
+                <button onclick="executeFinalPayment()" id="finalPayBtn" class="w-full bg-blue-600 mt-4 py-4 rounded-2xl shadow-xl font-black italic uppercase hidden">Confirm & Pay</button>
             </div>
         </div>
 
         <div id="successModal" class="fixed inset-0 bg-black/98 backdrop-blur-xl hidden flex items-center justify-center p-6 z-[100] animate-in zoom-in duration-300">
-            <div class="glass p-8 w-full max-w-sm border-green-500/50 text-center font-bold italic uppercase tracking-tighter text-white">
-                <h1 class="text-blue-400 text-3xl font-black mb-4 tracking-tighter">Congratulation!</h1>
+            <div class="glass p-8 w-full max-w-sm border-green-500/50 text-center font-bold italic uppercase text-white">
+                <h1 class="text-blue-400 text-3xl font-black mb-4">Congratulation!</h1>
                 <div class="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-green-500 shadow-2xl shadow-green-500/30">
                     <i class="fa-solid fa-check text-4xl text-green-500"></i>
                 </div>
-                <h2 class="text-white text-3xl font-extrabold mb-1 tracking-widest">First</h2>
-                <h3 class="text-green-400 text-sm mb-6 tracking-wider">Recharge Successful</h3>
-                <div class="glass p-5 bg-white/5 text-left space-y-3 border-white/5 font-bold">
-                    <p class="text-[9px] opacity-40 mb-1">Payment Details</p>
-                    <div class="flex justify-between text-xs"><span class="text-blue-300">ID/Number:</span><span id="resId" class="text-white">---</span></div>
-                    <div class="flex justify-between text-xs"><span class="text-blue-300">Provider:</span><span id="resOp" class="text-white">---</span></div>
-                    <div class="flex justify-between pt-2 border-t border-white/5"><span class="text-blue-300">Amount:</span><span id="resAmt" class="text-white font-black text-lg text-green-400">---</span></div>
+                <h2 class="text-white text-3xl font-extrabold mb-1">First</h2>
+                <h3 class="text-green-400 text-sm mb-6">Payment Successful</h3>
+                <div class="glass p-5 bg-white/5 text-left space-y-3 border-white/5 text-xs">
+                    <div class="flex justify-between"><span class="text-blue-300">ID/Number:</span><span id="resId">---</span></div>
+                    <div class="flex justify-between"><span class="text-blue-300">Provider:</span><span id="resOp">---</span></div>
+                    <div class="flex justify-between pt-2 border-t border-white/5 font-black"><span class="text-blue-300">Amount:</span><span id="resAmt" class="text-green-400 text-lg">---</span></div>
                 </div>
-                <button onclick="closeModal('successModal')" class="w-full bg-blue-600 mt-8 py-4 rounded-xl text-white font-black uppercase tracking-widest active:scale-95 shadow-2xl">Done</button>
+                <button onclick="closeModal('successModal')" class="w-full bg-blue-600 mt-8 py-4 rounded-xl font-black uppercase tracking-widest active:scale-95">Done</button>
             </div>
         </div>
     </div>
