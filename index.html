@@ -91,4 +91,29 @@
                         <p class="text-center text-[11px] font-bold italic text-blue-300">≈ <span id="convertedUsdc">0.00</span> USDC</p>
                     </div>
                     <div id="plansBox" class="hidden"><p class="text-[8px] opacity-40 mb-2 italic">Select Plan:</p><div id="plansList" class="max-h-48 overflow-y-auto space-y-2 pr-1"></div></div>
-                    <button onclick="executeFinalPayment()" id="finalPayBtn" class="w-full bg-blue-600 py-4 rounded-2xl shadow-xl font-black italic uppercase tracking-widest hidden">Confirm
+                    <button onclick="executeFinalPayment()" id="finalPayBtn" class="w-full bg-blue-600 py-4 rounded-2xl shadow-xl font-black italic uppercase tracking-widest hidden">Confirm Payment</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="successModal" class="fixed inset-0 bg-black/98 backdrop-blur-xl hidden flex items-center justify-center p-6 z-[100] animate-in zoom-in duration-300">
+            <div class="glass p-8 w-full max-w-sm border-green-500/50 text-center font-bold italic uppercase tracking-tighter text-white">
+                <h1 class="text-blue-400 text-3xl font-black mb-4 tracking-tighter">Congratulation!</h1>
+                <div class="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-green-500 shadow-2xl shadow-green-500/30">
+                    <i class="fa-solid fa-check text-4xl text-green-500"></i>
+                </div>
+                <h2 class="text-white text-3xl font-extrabold mb-1 tracking-widest">First</h2>
+                <h3 class="text-green-400 text-sm mb-6 tracking-wider">Recharge Successful</h3>
+                <div class="glass p-5 bg-white/5 text-left space-y-3 border-white/5 font-bold">
+                    <p class="text-[9px] opacity-40 mb-1">Payment Details</p>
+                    <div class="flex justify-between text-xs"><span class="text-blue-300">ID/Number:</span><span id="resId" class="text-white">---</span></div>
+                    <div class="flex justify-between text-xs"><span class="text-blue-300">Provider:</span><span id="resOp" class="text-white">---</span></div>
+                    <div class="flex justify-between pt-2 border-t border-white/5"><span class="text-blue-300">Amount:</span><span id="resAmt" class="text-white font-black text-lg text-green-400">---</span></div>
+                </div>
+                <button onclick="closeModal('successModal')" class="w-full bg-blue-600 mt-8 py-4 rounded-xl text-white font-black uppercase tracking-widest active:scale-95 shadow-2xl">Done</button>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
