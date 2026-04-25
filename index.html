@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <title>ARC INDIPAY - FINAL</title>
+    <title>ARC INDIPAY - FINAL FIX</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    
     <style>
-        body { background: #030613; color: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; min-height: 100vh; margin: 0; }
+        body { background: #030613; color: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; min-height: 100vh; margin: 0; overflow-x: hidden; }
         .app-container { max-width: 480px; width: 100%; padding: 20px; }
         .glass { background: rgba(17, 25, 45, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; }
         .hidden { display: none !important; }
@@ -33,9 +34,9 @@
                 <h2 class="text-xl text-blue-500 font-black">Arc Indipay</h2>
             </div>
 
-            <div class="glass p-7 mb-6 bg-gradient-to-br from-blue-700 to-indigo-900 border-none shadow-2xl">
+            <div class="glass p-7 mb-6 bg-gradient-to-br from-blue-700 to-indigo-900 border-none shadow-2xl text-center">
                 <p class="text-[9px] opacity-60 mb-2 font-mono uppercase tracking-widest text-white">Address: <span id="walletAddr">0x...</span></p>
-                <div class="mt-4 font-bold italic text-white uppercase tracking-tighter text-center">
+                <div class="mt-4 font-bold italic text-white uppercase tracking-tighter">
                     <h1 class="text-5xl font-black tracking-tighter"><span id="usdcBal">0.00</span> <span class="text-2xl opacity-50">USDC</span></h1>
                     <p class="text-xl font-bold mt-2 text-blue-300">≈ ₹<span id="inrBal">0.00</span></p>
                 </div>
@@ -53,20 +54,34 @@
             <div class="glass p-7 mb-8 border-blue-500/30 text-white font-bold italic uppercase">
                 <div class="flex items-center gap-3 mb-6"><i class="fa-bolt fa-solid text-blue-400"></i><h3 class="text-blue-400 text-sm">Utility Payments</h3></div>
                 <div class="grid grid-cols-2 gap-4 text-center mb-6">
-                    <div onclick="setupUtility('mobile')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2">
-                        <i class="fa-solid fa-mobile-screen text-blue-400"></i><div class="text-[10px]">Mobile</div>
-                    </div>
-                    <div onclick="setupUtility('electricity')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2">
-                        <i class="fa-solid fa-lightbulb text-blue-400"></i><div class="text-[10px]">Electric</div>
-                    </div>
-                    <div onclick="setupUtility('dth')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2">
-                        <i class="fa-solid fa-tv text-blue-400"></i><div class="text-[10px]">DTH</div>
-                    </div>
-                    <div onclick="setupUtility('broadband')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2">
-                        <i class="fa-solid fa-wifi text-blue-400"></i><div class="text-[10px]">Wifi</div>
-                    </div>
+                    <div onclick="setupUtility('mobile')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-mobile-screen text-blue-400"></i><div class="text-[10px]">Mobile</div></div>
+                    <div onclick="setupUtility('electricity')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-lightbulb text-blue-400"></i><div class="text-[10px]">Electric</div></div>
+                    <div onclick="setupUtility('dth')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-tv text-blue-400"></i><div class="text-[10px]">DTH</div></div>
+                    <div onclick="setupUtility('broadband')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-wifi text-blue-400"></i><div class="text-[10px]">Wifi</div></div>
                 </div>
                 <div id="utilityBox" class="hidden space-y-4">
                     <p id="utilDetail" class="text-[10px] text-blue-300 lowercase italic opacity-80 text-center"></p>
                     <input id="utilNumber" type="text" placeholder="ID / Number" class="w-full p-4 rounded-xl text-xs">
-                    <input id="utilAmount" type="number" placeholder="Amount (USDC)" class="w-full
+                    <input id="utilAmount" type="number" placeholder="Amount (USDC)" class="w-full p-4 rounded-xl text-xl font-bold">
+                    <button onclick="payUtility()" class="w-full bg-blue-600 py-4 rounded-2xl active:scale-95 shadow-xl">Pay Utility Bill</button>
+                </div>
+            </div>
+
+            <div class="glass p-6 min-h-[160px] text-white">
+                <p class="text-[10px] font-bold opacity-30 mb-4 tracking-widest uppercase italic text-center">Latest Transactions</p>
+                <div id="latestTxList" class="space-y-4">
+                    <div class="text-center opacity-20 py-4 text-xs italic">Syncing...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="scannerModal" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center p-6 z-[60]">
+            <div class="glass p-4 w-full max-w-sm border-blue-500/30">
+                <div id="reader" class="rounded-2xl overflow-hidden mb-4"></div>
+                <button onclick="stopScanner()" class="w-full py-3 bg-red-500/20 text-red-500 font-bold rounded-xl active:scale-95 uppercase italic">Cancel</button>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
