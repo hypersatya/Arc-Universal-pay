@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <title>ARC INDIPAY - V5</title>
+    <title>ARC INDIPAY - FINAL V6</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -22,7 +22,7 @@
 <body>
     <div class="app-container">
         <div id="loginScreen" class="flex flex-col items-center justify-center min-h-[80vh] text-center font-bold italic uppercase">
-            <div class="bg-blue-600 text-white rounded-2xl w-20 h-20 flex items-center justify-center text-3xl mb-6 shadow-2xl">1ST</div>
+            <div class="bg-blue-600 text-white rounded-2xl w-20 h-20 flex items-center justify-center text-3xl mb-6 shadow-2xl shadow-blue-500/20">1ST</div>
             <h1 class="text-4xl text-blue-500 mb-2 font-black tracking-tighter">Arc Indipay</h1>
             <button onclick="connectWallet()" class="w-full max-w-xs bg-blue-600 py-4 rounded-2xl shadow-xl text-white font-black italic">CONNECT WALLET</button>
         </div>
@@ -42,7 +42,7 @@
             </div>
 
             <div class="grid grid-cols-2 gap-4 mb-4 text-center text-white font-bold italic uppercase">
-                <div onclick="openTransfer()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-paper-plane text-2xl text-blue-400 mb-3"></i><div class="text-xs">Transfer</div></div>
+                <div onclick="openTransfer()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-paper-plane text-2xl text-blue-400 mb-3"></i><div class="text-sm">Transfer</div></div>
                 <div onclick="openReceive()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-qrcode text-2xl text-blue-400 mb-3"></i><div class="text-sm">Receive</div></div>
             </div>
             <div class="grid grid-cols-2 gap-4 mb-8 text-center text-white font-bold italic uppercase">
@@ -56,7 +56,7 @@
                     <div onclick="setupBooking('mobile')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-mobile-screen text-blue-400"></i><div class="text-[10px]">Mobile</div></div>
                     <div onclick="setupBooking('electricity')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-lightbulb text-blue-400"></i><div class="text-[10px]">Electric</div></div>
                     <div onclick="setupBooking('dth')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-tv text-blue-400"></i><div class="text-[10px]">DTH</div></div>
-                    <div onclick="setupBooking('broadband')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-wifi text-blue-400"></i><div class="text-[10px]">Wifi</div></div>
+                    <div onclick="setupBooking('broadband')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-wifi text-blue-400"></i><div class="text-[10px]">Broadband Bill</div></div>
                 </div>
             </div>
 
@@ -64,22 +64,22 @@
                 <div class="flex items-center gap-3 mb-6"><i class="fa-solid fa-ticket text-blue-400"></i><h3 class="text-blue-400 text-sm">Ticket Bookings</h3></div>
                 <div class="grid grid-cols-2 gap-4 text-center">
                     <div onclick="setupBooking('train')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2">
-                        <span class="text-xl">🚆</span><div class="text-[10px] mt-1">Train</div>
+                        <i class="fa-solid fa-train text-blue-400"></i><div class="text-[10px]">Train</div>
                     </div>
                     <div onclick="setupBooking('bus')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2">
-                        <span class="text-xl">🚌</span><div class="text-[10px] mt-1">Bus</div>
+                        <i class="fa-solid fa-bus text-blue-400"></i><div class="text-[10px]">Bus</div>
                     </div>
                     <div onclick="setupBooking('flight')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2">
-                        <span class="text-xl">✈️</span><div class="text-[10px] mt-1">Flight</div>
+                        <i class="fa-solid fa-plane text-blue-400"></i><div class="text-[10px]">Flight</div>
                     </div>
                     <div onclick="setupBooking('movie')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2">
-                        <span class="text-xl">🎬</span><div class="text-[10px] mt-1">Movie</div>
+                        <i class="fa-solid fa-film text-blue-400"></i><div class="text-[10px]">Movie</div>
                     </div>
                 </div>
 
                 <div id="bookingBox" class="hidden mt-6 space-y-4 animate-in fade-in duration-300">
                     <p id="bookDetail" class="text-[10px] text-blue-300 lowercase italic text-center"></p>
-                    <input id="bookId" type="text" placeholder="ID / Number" class="w-full p-4 rounded-xl text-xs">
+                    <input id="bookId" type="text" placeholder="Details" class="w-full p-4 rounded-xl text-xs">
                     <input id="bookAmount" type="number" placeholder="Amount (USDC)" class="w-full p-4 rounded-xl text-xl font-bold">
                     <button onclick="payBooking()" class="w-full bg-blue-600 py-4 rounded-2xl shadow-xl font-black italic">Pay & Book Now</button>
                 </div>
