@@ -11,69 +11,59 @@
         body { background: #030613; color: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; min-height: 100vh; margin: 0; }
         .app-container { max-width: 450px; width: 100%; padding: 20px; }
         .glass { background: rgba(17, 25, 45, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; }
-        .btn-blue { background: #2540d9; transition: 0.2s; }
-        .btn-blue:active { transform: scale(0.95); }
-        input { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); outline: none; }
+        .tool-card { cursor: pointer; transition: 0.2s; }
+        .tool-card:active { transform: scale(0.95); background: rgba(59, 92, 255, 0.2); }
     </style>
 </head>
 <body>
     <div class="app-container">
         <div class="flex justify-between items-center mb-6">
-            <div class="flex items-center gap-2">
-                <div class="bg-blue-600 text-white font-bold rounded p-1 text-[10px]">1st</div>
-                <button onclick="connect()" id="connectBtn" class="text-xs bg-white/10 px-4 py-2 rounded-full border border-white/20">Connect Wallet</button>
-            </div>
-            <h2 class="text-lg font-black text-blue-500 italic">ARC INDI PAY</h2>
+            <button onclick="connect()" id="connectBtn" class="text-xs bg-blue-600 px-5 py-2 rounded-full font-bold">Connect Wallet</button>
+            <h2 class="text-lg font-black text-blue-500 italic uppercase">Arc Indipay</h2>
         </div>
 
         <div class="glass p-6 mb-6 bg-gradient-to-br from-blue-700 to-indigo-900 border-none">
-            <div class="flex justify-between text-[10px] opacity-60">
-                <span>WALLET ADDRESS</span>
-                <span id="addr">0x...0000</span>
+            <p class="text-[10px] opacity-60 mb-1">WALLET: <span id="addr">0x...0000</span></p>
+            <h1 class="text-4xl font-bold"><span id="usdcBal">100.00</span> <span class="text-xl">USDC</span></h1>
+            <p class="text-lg opacity-80">≈ ₹<span id="inrBal">8,350.00</span></p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div onclick="openTransfer()" class="glass p-8 text-center tool-card">
+                <i class="fa-solid fa-paper-plane text-2xl text-blue-400 mb-2"></i>
+                <div class="font-bold">Transfer</div>
             </div>
-            <div class="mt-4">
-                <h1 class="text-4xl font-bold"><span id="usdcBal">0.00</span> <span class="text-xl">USDC</span></h1>
-                <p class="text-lg opacity-80 mt-1">≈ ₹<span id="inrBal">0.00</span></p>
+            <div onclick="showAddress()" class="glass p-8 text-center tool-card">
+                <i class="fa-solid fa-qrcode text-2xl text-blue-400 mb-2"></i>
+                <div class="font-bold">Receive</div>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <div onclick="openModal()" class="glass p-5 text-center cursor-pointer hover:bg-white/5 transition">
-                <i class="fa-solid fa-paper-plane text-xl text-blue-400 mb-2"></i>
-                <div class="text-sm font-bold">Transfer</div>
-            </div>
-            <div onclick="alert('Your address: ' + user)" class="glass p-5 text-center cursor-pointer hover:bg-white/5 transition">
-                <i class="fa-solid fa-qrcode text-xl text-blue-400 mb-2"></i>
-                <div class="text-sm font-bold">Receive</div>
-            </div>
-            <button onclick="alert('Camera starting...')" class="glass p-4 col-span-2 text-blue-400 font-bold">
-                <i class="fa-solid fa-expand mr-2"></i> Scan & Pay
-            </button>
+        <div onclick="startScanner()" class="glass p-5 text-center tool-card mb-6 border-blue-500/30">
+            <i class="fa-solid fa-expand text-blue-400 mr-2"></i>
+            <span class="font-bold text-blue-400">Scan & Pay</span>
         </div>
 
-        <div class="glass p-5">
-            <p class="text-[10px] font-bold opacity-50 mb-4 tracking-widest">LATEST 5 TRANSACTIONS</p>
-            <div id="history" class="text-sm space-y-3 opacity-60 italic text-center py-4">
-                No recent transactions
-            </div>
+        <div class="glass p-6">
+            <p class="text-[10px] font-bold opacity-50 mb-4 tracking-tighter">LATEST 5 TRANSACTIONS</p>
+            <div id="txHistory" class="text-sm opacity-40 text-center py-4 italic">No recent transactions</div>
         </div>
 
-        <div id="modal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center p-4 z-50">
-            <div class="glass p-6 w-full max-w-sm relative">
-                <button onclick="closeModal()" class="absolute right-4 top-4 opacity-50 text-xl">&times;</button>
-                <h3 class="text-center font-bold text-blue-400 mb-6 uppercase tracking-wider">Send Payment</h3>
-                
-                <input id="to" type="text" placeholder="Recipient Address (0x...)" class="w-full p-4 rounded-xl mb-4 text-sm">
-                <input id="amt" type="number" oninput="calcINR(this.value)" placeholder="Amount USDC" class="w-full p-4 rounded-xl mb-1 text-2xl font-bold">
-                <p class="text-xs text-blue-500 mb-6 ml-1">≈ ₹<span id="preview">0.00</span> INR</p>
-
-                <button onclick="sendUSDC()" id="sendBtn" class="w-full btn-blue py-4 rounded-xl font-bold">Confirm Send</button>
+        <div id="payModal" class="fixed inset-0 bg-black/90 hidden flex items-center justify-center p-6 z-50">
+            <div class="glass p-6 w-full max-w-sm border-blue-500">
+                <h3 class="text-center font-bold text-blue-400 mb-6">SEND PAYMENT</h3>
+                <input id="toAddr" type="text" placeholder="Recipient 0x..." class="w-full p-4 rounded-xl bg-white/5 border border-white/10 mb-4 outline-none focus:border-blue-500">
+                <input id="payAmt" type="number" oninput="updateINR(this.value)" placeholder="Amount" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 mb-2 font-bold text-2xl">
+                <p class="text-xs text-blue-500 mb-8 font-medium">≈ ₹<span id="inrPreview">0.00</span> INR</p>
+                <div class="flex gap-2">
+                    <button onclick="closeTransfer()" class="flex-1 bg-white/10 py-4 rounded-xl font-bold">Cancel</button>
+                    <button onclick="send()" class="flex-1 bg-blue-600 py-4 rounded-xl font-bold">Send</button>
+                </div>
             </div>
         </div>
 
-        <p class="text-center text-blue-600 font-bold italic mt-10 text-sm">arc Circle Sevilla Account</p>
+        <p class="text-center text-blue-600 font-bold italic mt-12 text-sm">arc Circle Sevilla Account</p>
     </div>
-
     <script src="app.js"></script>
 </body>
 </html>
