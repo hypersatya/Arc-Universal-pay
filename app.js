@@ -2,31 +2,21 @@ const USDC_ADDR = "0x3600000000000000000000000000000000000000";
 const MERCHANT = "0xbdc55a1296d065b7eb4363207d1a599e578712c5"; 
 const INR_RATE = 83.50;
 
-let userAddress = "", provider, signer, currentType = "", selectedUsdc = 0;
+let userAddress = "", provider, signer, currentType = "", selectedUsdc = 0, selectedDesc = "";
 
-const operators = {
-    mobile: ["Jio Prepaid", "Airtel", "Vi"], electricity: ["Tata Power", "Adani"],
-    dth: ["Tata Play", "Airtel DTH"], broadband: ["JioFiber", "Airtel Xstream"],
-    train: ["IRCTC Partner"], bus: ["RedBus", "Zingbus"], flight: ["IndiGo", "SpiceJet"], hotel: ["MakeMyTrip", "HourlyStays"]
+const searchForms = {
+    flight: `<input type="text" id="src" placeholder="From (e.g. Kolkata)" class="w-full p-4 rounded-xl text-xs mb-2"><input type="text" id="dst" placeholder="To (e.g. Mumbai)" class="w-full p-4 rounded-xl text-xs">`,
+    train: `<input type="text" id="src" placeholder="Source Station" class="w-full p-4 rounded-xl text-xs mb-2"><input type="text" id="dst" placeholder="Destination Station" class="w-full p-4 rounded-xl text-xs">`,
+    bus: `<input type="text" id="src" placeholder="From City" class="w-full p-4 rounded-xl text-xs mb-2"><input type="text" id="dst" placeholder="To City" class="w-full p-4 rounded-xl text-xs">`,
+    hotel: `<input type="text" id="src" placeholder="City or Property Name" class="w-full p-4 rounded-xl text-xs">`
 };
 
-const bookingFields = {
-    flight: `
-        <div class="flex gap-2 mb-2"><button class="bg-blue-600 border border-blue-600 text-[8px] px-3 py-1 rounded-full">One Way</button><button class="opacity-30 text-[8px] px-3 py-1">Round Trip</button></div>
-        <input type="text" id="targetId" placeholder="From (CCU - Kolkata)" class="w-full p-3 rounded-lg text-[10px] mb-2">
-        <input type="text" placeholder="To (BOM - Mumbai)" class="w-full p-3 rounded-lg text-[10px] mb-2">
-        <input type="date" class="w-full p-3 rounded-lg text-[10px]">
-    `,
-    train: `
-        <input type="text" id="targetId" placeholder="From Station (HWH)" class="w-full p-3 rounded-lg text-[10px] mb-2">
-        <input type="text" placeholder="To Station (CSTM)" class="w-full p-3 rounded-lg text-[10px] mb-2">
-        <input type="date" class="w-full p-3 rounded-lg text-[10px]">
-    `,
-    bus: `<input type="text" id="targetId" placeholder="From" class="w-full p-3 rounded-lg text-[10px] mb-2"><input type="text" placeholder="To" class="w-full p-3 rounded-lg text-[10px] mb-2"><input type="date" class="w-full p-3 rounded-lg text-[10px]">`,
-    hotel: `<input type="text" id="targetId" placeholder="City / Property" class="w-full p-3 rounded-lg text-[10px] mb-2"><div class="flex gap-2"><input type="date" class="w-1/2 p-3 rounded-lg text-[10px]"><input type="text" placeholder="1 Room" class="w-1/2 p-3 rounded-lg text-[10px]"></div>`
+const travelData = {
+    flight: [{op: "IndiGo", price: 4500, time: "10:30 AM"}, {op: "Air India", price: 5800, time: "02:15 PM"}],
+    train: [{op: "Rajdhani Exp", price: 2100, time: "08:00 PM"}, {op: "Duronto Exp", price: 1850, time: "11:30 AM"}],
+    bus: [{op: "RedBus AC", price: 950, time: "09:00 PM"}, {op: "Volvo Luxury", price: 1200, time: "07:30 AM"}],
+    hotel: [{op: "Luxury Stay", price: 3200, time: "Check-in 12PM"}, {op: "Budget Inn", price: 1500, time: "Check-in 11AM"}]
 };
-
-const mockPlans = [ { name: "1.5GB/Day - 28 Days", inr: 299 }, { name: "2GB/Day - 84 Days", inr: 749 }, { name: "Unlimited 5G - 1 Year", inr: 2999 } ];
 
 async function connectWallet() {
     if (!window.ethereum) return alert("Install Wallet");
@@ -43,76 +33,73 @@ async function connectWallet() {
 
 function openPopup(type) {
     currentType = type;
-    const modal = document.getElementById("bookingModal");
-    const fields = document.getElementById("searchFields");
-    const opSelect = document.getElementById("operatorSelect");
+    document.getElementById("bookingModal").classList.remove("hidden");
+    document.getElementById("modalTitle").innerText = type.toUpperCase() + " SEARCH";
+    document.getElementById("searchFields").innerHTML = searchForms[type];
     
-    document.getElementById("modalTitle").innerText = type.toUpperCase();
-    fields.innerHTML = bookingFields[type] || `<input type="text" id="targetId" placeholder="ID / Number" class="w-full p-4 rounded-xl text-xs">`;
+    document.getElementById("searchBtn").classList.remove("hidden");
+    document.getElementById("resultsList").classList.add("hidden");
+    document.getElementById("paySection").classList.add("hidden");
+}
+
+function searchTravel() {
+    const src = document.getElementById("src").value;
+    const dst = document.getElementById("dst") ? document.getElementById("dst").value : "";
     
-    opSelect.innerHTML = `<option disabled selected>Select Provider</option>`;
-    operators[type].forEach(op => opSelect.innerHTML += `<option value="${op}">${op}</option>`);
+    if(!src) return alert("Pehle details bharo!");
+    
+    const searchBtn = document.getElementById("searchBtn");
+    const results = document.getElementById("resultsList");
+    const inject = document.getElementById("injectResults");
 
-    document.getElementById("amountInputBox").classList.add("hidden");
-    document.getElementById("plansBox").classList.add("hidden");
-    document.getElementById("finalPayBtn").classList.add("hidden");
-    modal.classList.remove("hidden");
+    searchBtn.innerText = "Searching...";
+    
+    setTimeout(() => {
+        searchBtn.classList.add("hidden");
+        results.classList.remove("hidden");
+        inject.innerHTML = "";
+
+        travelData[currentType].forEach(item => {
+            const usdc = (item.price / INR_RATE).toFixed(2);
+            inject.innerHTML += `
+                <div onclick="selectTrip('${item.op}', '${src} to ${dst}', ${usdc})" class="result-card mb-2">
+                    <div class="flex justify-between items-center text-[11px] mb-1">
+                        <span class="text-blue-400 font-black">${item.op}</span>
+                        <span class="text-white font-black">₹${item.price}</span>
+                    </div>
+                    <div class="flex justify-between text-[8px] opacity-40">
+                        <span>${item.time}</span>
+                        <span>${usdc} USDC</span>
+                    </div>
+                </div>
+            `;
+        });
+    }, 1500);
 }
 
-function checkTypeAndShow() {
-    if (currentType === 'mobile') {
-        document.getElementById("amountInputBox").classList.add("hidden");
-        document.getElementById("plansBox").classList.remove("hidden");
-        loadPlans();
-    } else {
-        document.getElementById("plansBox").classList.add("hidden");
-        document.getElementById("amountInputBox").classList.remove("hidden");
-        document.getElementById("finalPayBtn").classList.remove("hidden");
-    }
-}
-
-function convertToUsdc(val) {
-    selectedUsdc = (val / INR_RATE).toFixed(2);
-    document.getElementById("convertedUsdc").innerText = selectedUsdc;
-}
-
-function loadPlans() {
-    const list = document.getElementById("plansList");
-    list.innerHTML = mockPlans.map(p => {
-        const u = (p.inr / INR_RATE).toFixed(2);
-        return `<div onclick="selectPlan(${p.inr}, ${u})" class="plan-card mb-2 flex justify-between items-center text-[10px]">
-            <span>${p.name}</span><span class="text-blue-400 font-bold">₹${p.inr} (${u} USDC)</span>
-        </div>`;
-    }).join('');
-}
-
-function selectPlan(inr, usdc) {
+function selectTrip(op, route, usdc) {
     selectedUsdc = usdc;
-    const btn = document.getElementById("finalPayBtn");
-    btn.classList.remove("hidden");
-    btn.innerText = `PAY ₹${inr}`;
-    document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+    selectedDesc = `${op} | ${route}`;
+    document.getElementById("paySection").classList.remove("hidden");
+    document.getElementById("selectedRouteInfo").innerText = selectedDesc;
 }
 
 async function executeFinalPayment() {
     const btn = document.getElementById("finalPayBtn");
     try {
-        btn.innerText = "WAITING..."; btn.disabled = true;
+        btn.innerText = "WAITING FOR WALLET..."; btn.disabled = true;
         const abi = ["function transfer(address to, uint256 amount) public returns (bool)"];
         const contract = new ethers.Contract(USDC_ADDR, abi, signer);
         const tx = await contract.transfer(MERCHANT, ethers.utils.parseUnits(selectedUsdc.toString(), 6), { gasLimit: 120000, type: 0 });
         await tx.wait();
         
-        // Success Card
-        document.getElementById("resId").innerText = document.getElementById("targetId").value;
-        document.getElementById("resOp").innerText = document.getElementById("operatorSelect").value;
+        document.getElementById("resId").innerText = selectedDesc;
         document.getElementById("resAmt").innerText = selectedUsdc + " USDC";
         closeModal('bookingModal');
         document.getElementById("successModal").classList.remove("hidden");
         fetchBalance();
         getHistory(5, "latestTxList");
-    } catch (e) { alert("Payment Fail!"); btn.innerText = "Confirm Payment"; btn.disabled = false; }
+    } catch (e) { alert("Payment Fail!"); btn.innerText = "Pay & Confirm"; btn.disabled = false; }
 }
 
 async function fetchBalance() {
@@ -131,10 +118,8 @@ async function getHistory(limit, targetId) {
     try {
         const abi = ["event Transfer(address indexed from, address indexed to, uint256 value)"];
         const contract = new ethers.Contract(USDC_ADDR, abi, provider);
-        const logs = await contract.queryFilter(contract.filters.Transfer(userAddress), -2000, "latest");
-        list.innerHTML = logs.slice(-limit).reverse().map(l => `<div class="flex justify-between border-b border-white/5 pb-2 text-[9px] uppercase italic font-bold">
-            <p>To: ${l.args.to.slice(0,12)}...</p><p>-${ethers.utils.formatUnits(l.args.value, 6)} USDC</p>
-        </div>`).join('');
+        const logs = await contract.queryFilter(contract.filters.Transfer(userAddress), -1000, "latest");
+        list.innerHTML = logs.slice(-limit).reverse().map(l => `<div class="flex justify-between border-b border-white/5 pb-2 text-[9px] font-bold uppercase italic"><p>To: ${l.args.to.slice(0,12)}...</p><p>-${ethers.utils.formatUnits(l.args.value, 6)} USDC</p></div>`).join('');
     } catch (e) {}
 }
 
