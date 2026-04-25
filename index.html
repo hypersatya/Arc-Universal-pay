@@ -16,16 +16,16 @@
         .glass { background: rgba(17, 25, 45, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; }
         .hidden { display: none !important; }
         .tool-btn { cursor: pointer; transition: 0.2s; }
-        .tool-btn:active { transform: scale(0.95); }
-        #reader { border-radius: 20px !important; border: none !important; }
-        #reader video { border-radius: 20px !important; object-fit: cover !important; }
+        .tool-btn:active { transform: scale(0.95); background: rgba(59, 92, 255, 0.2); }
+        select { -webkit-appearance: none; -moz-appearance: none; appearance: none; background: rgba(255,255,255,0.05) !important; color: white !important; cursor: pointer; }
+        select::-ms-expand { display: none; }
     </style>
 </head>
 <body>
     <div class="app-container">
         
         <div id="loginScreen" class="flex flex-col items-center justify-center min-h-[80vh] text-center font-bold italic uppercase">
-            <div class="bg-blue-600 text-white rounded-2xl w-20 h-20 flex items-center justify-center text-3xl mb-6 shadow-2xl">1ST</div>
+            <div class="bg-blue-600 text-white rounded-2xl w-20 h-20 flex items-center justify-center text-3xl mb-6 shadow-2xl shadow-blue-500/20">1ST</div>
             <h1 class="text-4xl text-blue-500 mb-2 font-black">Arc Indipay</h1>
             <p class="text-white/40 text-[10px] mb-10 tracking-[0.3em]">Direct USDC Payments</p>
             <button onclick="connectWallet()" class="w-full max-w-xs bg-blue-600 py-4 rounded-2xl shadow-xl active:scale-95 text-white font-black italic">CONNECT WALLET</button>
@@ -35,39 +35,76 @@
             <div class="flex justify-between items-center mb-8 uppercase italic font-bold">
                 <div class="flex items-center gap-2">
                     <div class="bg-blue-600 text-white rounded px-2 py-0.5 text-[10px]">1ST</div>
-                    <span class="text-[10px] text-green-400 tracking-tighter uppercase font-bold">Live</span>
+                    <span id="status" class="text-[10px] text-green-400 tracking-tighter uppercase font-bold">Online</span>
                 </div>
                 <h2 class="text-xl text-blue-500 font-black">Arc Indipay</h2>
             </div>
 
-            <div class="glass p-7 mb-6 bg-gradient-to-br from-blue-700 to-indigo-900 border-none shadow-2xl">
-                <p class="text-[9px] opacity-60 mb-2 font-mono uppercase tracking-widest text-white">Address: <span id="walletAddr">0x...</span></p>
-                <div class="mt-4 font-bold italic">
-                    <h1 class="text-5xl font-black tracking-tighter text-white"><span id="usdcBal">0.00</span> <span class="text-2xl opacity-50 font-medium italic">USDC</span></h1>
+            <div class="glass p-7 mb-6 bg-gradient-to-br from-blue-700 to-indigo-900 border-none shadow-2xl relative overflow-hidden">
+                <p class="text-[9px] opacity-60 mb-2 font-mono uppercase tracking-widest text-white">Wallet Address: <span id="walletAddr">0x...</span></p>
+                <div class="mt-4 font-bold italic uppercase text-white">
+                    <h1 class="text-5xl font-black tracking-tighter"><span id="usdcBal">0.00</span> <span class="text-2xl opacity-50 font-medium italic">USDC</span></h1>
                     <p class="text-xl mt-2 text-blue-300">≈ ₹<span id="inrBal">0.00</span></p>
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 mb-4 font-bold uppercase italic text-center">
-                <div onclick="openTransfer()" class="glass p-8 tool-btn border-white/5 shadow-lg">
-                    <i class="fa-solid fa-paper-plane text-2xl text-blue-400 mb-3"></i>
-                    <div class="text-sm">Transfer</div>
+            <div class="grid grid-cols-2 gap-4 mb-4 font-bold uppercase italic text-center text-white">
+                <div onclick="openTransfer()" class="glass p-8 tool-btn border-white/5 shadow-lg relative overflow-hidden">
+                    <i class="fa-solid fa-paper-plane text-2xl text-blue-400 mb-3 relative z-10"></i>
+                    <div class="text-sm tracking-tighter relative z-10">Transfer</div>
                 </div>
-                <div onclick="openReceive()" class="glass p-8 tool-btn border-white/5 shadow-lg">
-                    <i class="fa-solid fa-qrcode text-2xl text-blue-400 mb-3"></i>
-                    <div class="text-sm">Receive</div>
+                <div onclick="openReceive()" class="glass p-8 tool-btn border-white/5 shadow-lg relative overflow-hidden">
+                    <i class="fa-solid fa-qrcode text-2xl text-blue-400 mb-3 relative z-10"></i>
+                    <div class="text-sm tracking-tighter relative z-10">Receive</div>
                 </div>
             </div>
 
-            <div class="glass p-5 text-center tool-btn border-blue-500/20 mb-6 shadow-lg" onclick="startScanner()">
-                <i class="fa-solid fa-expand text-blue-400 mr-2"></i>
+            <div class="glass p-5 text-center tool-btn border-blue-500/20 mb-6 shadow-lg flex items-center justify-center gap-3" onclick="startScanner()">
+                <i class="fa-solid fa-expand text-blue-400"></i>
                 <span class="font-bold text-blue-400 uppercase italic">Scan & Pay</span>
             </div>
 
-            <div class="glass p-6 min-h-[160px]">
+            <div class="glass p-6 min-h-[160px] text-center border-white/5 text-white">
                 <p class="text-[10px] font-bold opacity-30 mb-4 tracking-widest uppercase italic">Recent Transactions</p>
                 <div id="txHistoryList" class="space-y-4">
                     <div class="text-center opacity-20 py-4 text-xs font-bold uppercase">Syncing...</div>
+                </div>
+            </div>
+
+            <div class="glass p-7 mt-6 border-blue-500/30 text-white font-bold italic uppercase relative">
+                <div class="absolute inset-0 bg-blue-500 opacity-5 blur-xl"></div>
+                
+                <div class="flex items-center gap-3 mb-6">
+                    <i class="fa-bolt fa-solid text-blue-400 text-lg"></i>
+                    <h3 class="text-blue-400 text-sm tracking-wider font-bold">Utility Payments</h3>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-6 font-bold uppercase italic text-center">
+                    <div onclick="openUtilityDropdown('gas')" class="glass p-6 tool-btn border-white/5 relative overflow-hidden flex flex-col items-center gap-2">
+                        <i class="fa-solid fa-fire text-xl text-blue-400"></i>
+                        <div class="text-[11px] tracking-tight">Gas</div>
+                    </div>
+                    <div onclick="openUtilityDropdown('electricity')" class="glass p-6 tool-btn border-white/5 relative overflow-hidden flex flex-col items-center gap-2">
+                        <i class="fa-solid fa-plug text-xl text-blue-400"></i>
+                        <div class="text-[11px] tracking-tight">Electricity</div>
+                    </div>
+                    <div onclick="openUtilityDropdown('water')" class="glass p-6 tool-btn border-white/5 relative overflow-hidden flex flex-col items-center gap-2">
+                        <i class="fa-solid fa-faucet-drip text-xl text-blue-400"></i>
+                        <div class="text-[11px] tracking-tight">Water</div>
+                    </div>
+                    <div onclick="openUtilityDropdown('more')" class="glass p-6 tool-btn border-white/5 relative overflow-hidden flex flex-col items-center gap-2">
+                        <i class="fa-solid fa-ellipsis text-xl text-blue-400"></i>
+                        <div class="text-[11px] tracking-tight">More</div>
+                    </div>
+                </div>
+
+                <div id="utilityInputs" class="hidden space-y-4 animate-in fade-in duration-300">
+                    <select id="serviceProviderSelect" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 mb-4 font-bold text-xs outline-none">
+                        <option value="" disabled selected>Select Provider</option>
+                    </select>
+                    <input id="utilityBillAmount" type="number" placeholder="Enter Bill Amount" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 mb-2 font-bold text-2xl outline-none focus:border-blue-500">
+                    <p class="text-[11px] text-blue-400 mb-6 font-bold italic tracking-wider">≈ ₹<span id="previewUtilityInr">0.00</span> INR</p>
+                    <button onclick="executePayment(true)" id="finalUtilityBtn" class="w-full bg-blue-600 font-black py-4 rounded-2xl active:scale-95 tracking-wider">Pay Utility Bill</button>
                 </div>
             </div>
         </div>
@@ -78,10 +115,10 @@
                     <h3 class="text-blue-400">Send Payment</h3>
                     <button onclick="closeModal('transferModal')" class="text-white/40 text-2xl">&times;</button>
                 </div>
-                <input id="toAddress" type="text" placeholder="Recipient Address 0x..." class="w-full p-4 rounded-xl bg-white/5 border border-white/10 mb-5 text-sm outline-none focus:border-blue-500">
-                <input id="amount" type="number" oninput="updateInrPreview(this.value)" placeholder="0.00" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 mb-1 font-bold text-3xl outline-none focus:border-blue-500">
+                <input id="toAddress" type="text" placeholder="Recipient Address 0x..." class="w-full p-4 rounded-xl bg-white/5 border border-white/10 mb-5 text-sm outline-none">
+                <input id="amount" type="number" oninput="updateInrPreview(this.value)" placeholder="0.00" class="w-full p-4 rounded-xl bg-white/5 border border-white/10 mb-1 font-bold text-3xl outline-none">
                 <p class="text-[11px] text-blue-400 mb-10 font-bold italic uppercase tracking-wider">≈ ₹<span id="previewInr">0.00</span> INR</p>
-                <button onclick="executePayment()" id="finalSendBtn" class="w-full bg-blue-600 font-black py-4 rounded-2xl shadow-xl active:scale-95 uppercase italic tracking-widest">Confirm Send</button>
+                <button onclick="executePayment(false)" id="finalSendBtn" class="w-full bg-blue-600 font-black py-4 rounded-2xl shadow-xl active:scale-95 uppercase italic tracking-widest">Confirm Send</button>
             </div>
         </div>
 
@@ -95,10 +132,10 @@
             </div>
         </div>
 
-        <div id="scannerModal" class="fixed inset-0 bg-black/98 hidden flex flex-col items-center justify-center p-6 z-[100]">
-            <div class="w-full max-w-sm relative">
-                <div id="reader" class="w-full shadow-2xl"></div>
-                <button onclick="stopScanner()" class="mt-8 w-full py-4 bg-red-600/20 text-red-500 font-black rounded-2xl uppercase italic border border-red-600/30">Cancel Scan</button>
+        <div id="scannerModal" class="fixed inset-0 bg-black/98 hidden flex items-center justify-center p-6 z-[60]">
+            <div class="glass p-4 w-full max-w-sm border-blue-500/30">
+                <div id="reader" class="rounded-2xl overflow-hidden mb-4"></div>
+                <button onclick="stopScanner()" class="w-full py-3 bg-red-500/20 text-red-500 font-bold rounded-xl active:scale-95">Cancel Scan</button>
             </div>
         </div>
 
