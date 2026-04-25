@@ -1,9 +1,9 @@
 const USDC_ADDR = "0x3600000000000000000000000000000000000000";
 const MERCHANT = "0xbdc55a1296d065b7eb4363207d1a599e578712c5"; 
-const ARC_CHAIN = "0x4cef52"; 
+const ARC_CHAIN_ID = '0x4cef52'; // Arc Testnet
 const INR_RATE = 83.50;
 
-let userAddress = "", provider, signer, selectedPrice = 0, selectedDesc = "", currentService = "";
+let userAddress = "", provider, signer, selectedPrice = 0, selectedItem = "";
 
 async function autoConnect() {
     if (!window.ethereum) return;
@@ -13,110 +13,109 @@ async function autoConnect() {
         provider = new ethers.providers.Web3Provider(window.ethereum);
         signer = provider.getSigner();
 
-        const network = await provider.getNetwork();
-        if(ethers.utils.hexValue(network.chainId) !== ARC_CHAIN) {
-            await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: ARC_CHAIN }] });
-            location.reload();
+        // Chain Check
+        const { chainId } = await provider.getNetwork();
+        if(ethers.utils.hexValue(chainId) !== ARC_CHAIN_ID) {
+            try {
+                await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: ARC_CHAIN_ID }] });
+                location.reload();
+            } catch(e) { alert("Add Arc Testnet to Wallet!"); return; }
         }
 
+        // UI Update: Dropdown/Profile
         document.getElementById("dot").classList.replace("bg-red-500", "bg-green-500");
         document.getElementById("walletLabel").innerText = userAddress.slice(0, 10) + "...";
+        
         fetchBalance();
-    } catch (e) { console.log(e); }
+        getTxLogs();
+    } catch (e) { console.error(e); }
 }
 
-function toggleMenu() { document.getElementById("profileMenu").classList.toggle("show"); }
+function toggleProfile() {
+    if(!userAddress) return autoConnect();
+    document.getElementById("profileMenu").classList.toggle("show");
+}
 
-const db = {
+const mockDb = {
     flight: [ {op: "Akasa Air", inr: 7421, time: "23:00-01:55"}, {op: "IndiGo", inr: 7424, time: "02:00-04:45"} ],
-    train: [ {op: "Rajdhani Exp", inr: 4500, time: "16:55-10:00"}, {op: "Gitanjali", inr: 840, time: "13:40-21:20"} ],
+    train: [ {op: "Gitanjali", inr: 840, time: "13:40-21:20"} ],
     bus: [ {op: "SANA TRAVELS", inr: 540, time: "21:15-06:00"} ],
-    hotel: [ {op: "ITC Sonar", inr: 9000, time: "Guest Details Req."} ],
-    mobile: [ {op: "Jio Unlimited", inr: 299, time: "28 Days"} ]
+    mobile: [ {op: "Jio Recharge", inr: 299, time: "28 Days Plan"} ]
 };
 
-function openService(type) {
-    currentService = type;
-    document.getElementById("dashboardView").classList.add("hidden");
-    document.getElementById("bookingUI").classList.remove("hidden");
-    const inputBox = document.getElementById("inputBox");
-    
-    if(type === 'hotel') {
-        inputBox.innerHTML = `<input type="text" id="src" placeholder="City or Hotel Name">`;
-        document.getElementById("pTitle").innerText = "GUEST DETAILS:";
-    } else if(['mobile', 'electric', 'dth'].includes(type)) {
-        inputBox.innerHTML = `<input type="number" id="src" placeholder="Enter ID / Number">`;
-        document.getElementById("pTitle").innerText = "CONSUMER DETAILS:";
-    } else {
-        inputBox.innerHTML = `<input type="text" id="src" placeholder="From (e.g. CCU)"><input type="text" id="dst" placeholder="To (e.g. BOM)">`;
-        document.getElementById("pTitle").innerText = "PASSENGER DETAILS:";
-    }
+function startFlow(type) {
+    document.getElementById("bookingOverlay").classList.remove("hidden");
+    document.getElementById("flowTitle").innerText = type.toUpperCase() + " SEARCH";
+    const content = document.getElementById("flowContent");
+    content.innerHTML = `
+        <input type="text" id="src" placeholder="Source / Number">
+        <button onclick="runSearch('${type}')" class="w-full bg-[#000080] text-white py-4 rounded-xl">Search Options</button>
+    `;
 }
 
-function runSearch() {
+function runSearch(type) {
     const src = document.getElementById("src").value;
-    if(!src) return alert("Pehle details bharo!");
-    
-    document.getElementById("stepSearch").classList.add("hidden");
-    document.getElementById("stepResults").classList.remove("hidden");
+    if(!src) return;
     const inject = document.getElementById("resultsInject");
-    inject.innerHTML = "";
+    inject.innerHTML = `<p class="text-center opacity-40 italic">Searching Real Routes...</p>`;
     
-    const data = db[currentService] || db['mobile'];
     setTimeout(() => {
+        inject.innerHTML = "";
+        const data = mockDb[type] || mockDb['mobile'];
         data.forEach(item => {
             const usdc = (item.inr / INR_RATE).toFixed(2);
             inject.innerHTML += `
-                <div onclick="selectTrip('${item.op}', ${item.inr}, ${usdc})" class="flight-item font-bold italic uppercase shadow-xl">
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="text-blue-700 text-xs font-black">${item.op}</span>
-                        <span class="text-black text-sm">₹${item.inr}</span>
-                    </div>
-                    <div class="flex justify-between text-[10px] opacity-70">
-                        <span>${item.time}</span>
-                        <span class="text-blue-600 font-black">${usdc} USDC</span>
-                    </div>
+                <div onclick="selectItem('${item.op}', ${item.inr}, ${usdc})" class="glass p-5 border-black/10 flex justify-between items-center text-black">
+                    <div><p class="font-black text-xs text-[#000080]">${item.op}</p><p class="text-[8px] opacity-60">${item.time}</p></div>
+                    <div class="text-right"><p class="font-black text-sm">₹${item.inr}</p><p class="text-[8px] text-[#138808]">${usdc} USDC</p></div>
                 </div>`;
         });
-    }, 800);
+    }, 1200);
 }
 
-function selectTrip(op, inr, usdc) {
+function selectItem(op, inr, usdc) {
     selectedPrice = usdc;
-    selectedDesc = op;
-    document.getElementById("stepResults").classList.add("hidden");
-    document.getElementById("stepFinal").classList.remove("hidden");
+    selectedItem = op;
+    document.getElementById("resultsInject").innerHTML = `<div class="glass p-6 space-y-4">
+        <p class="text-[#000080] text-xs font-black uppercase">Traveller Details:</p>
+        <input type="text" id="pName" placeholder="Full Name">
+        <input type="number" placeholder="Age">
+    </div>`;
     document.getElementById("bottomBar").style.display = "block";
-    document.getElementById("totalLabel").innerText = `${op}: ₹${inr} (${usdc} USDC)`;
+    document.getElementById("totalPrice").innerText = `BOOKING ${op}: ₹${inr} (${usdc} USDC)`;
 }
 
-async function startTx() {
-    if(!document.getElementById("pName").value) return alert("Details bhariye!");
+async function finalPay() {
+    if(!document.getElementById("pName").value) return alert("Fill Name!");
     const btn = document.getElementById("payBtn");
     try {
         btn.innerText = "WAITING FOR ARC..."; btn.disabled = true;
         const contract = new ethers.Contract(USDC_ADDR, ["function transfer(address,uint256) returns (bool)"], signer);
         const tx = await contract.transfer(MERCHANT, ethers.utils.parseUnits(selectedPrice.toString(), 6), { gasLimit: 150000, type: 0 });
-        
-        btn.innerText = "CONFIRMING...";
         await tx.wait();
-        
-        document.getElementById("resItem").innerText = selectedDesc;
-        document.getElementById("resPrice").innerText = selectedPrice + " USDC";
+        document.getElementById("resDesc").innerText = selectedItem;
+        document.getElementById("resAmt").innerText = selectedPrice + " USDC";
         document.getElementById("successModal").classList.remove("hidden");
-    } catch (e) { alert("Tx Fail!"); btn.disabled = false; btn.innerText = "Confirm & Pay"; }
+    } catch (e) { alert("Fail!"); btn.disabled = false; btn.innerText = "Confirm & Pay"; }
 }
 
 async function fetchBalance() {
-    try {
-        const contract = new ethers.Contract(USDC_ADDR, ["function balanceOf(address) view returns (uint256)"], provider);
-        const bal = await contract.balanceOf(userAddress);
-        const f = ethers.utils.formatUnits(bal, 6);
-        document.getElementById("usdcBal").innerText = parseFloat(f).toFixed(2);
-        document.getElementById("inrBal").innerText = (f * INR_RATE).toLocaleString('en-IN');
-    } catch(e) {}
+    const contract = new ethers.Contract(USDC_ADDR, ["function balanceOf(address) view returns (uint256)"], provider);
+    const bal = await contract.balanceOf(userAddress);
+    const f = ethers.utils.formatUnits(bal, 6);
+    document.getElementById("usdcBal").innerText = parseFloat(f).toFixed(2);
+    document.getElementById("inrBal").innerText = (f * INR_RATE).toLocaleString('en-IN');
 }
 
-function closeService() { location.reload(); }
-function toggleMenu() { document.getElementById("profileMenu").classList.toggle("show"); }
+async function getTxLogs() {
+    const contract = new ethers.Contract(USDC_ADDR, ["event Transfer(address indexed from, address indexed to, uint256 value)"], provider);
+    const logs = await contract.queryFilter(contract.filters.Transfer(userAddress), -1000, "latest");
+    document.getElementById("txList").innerHTML = logs.slice(-3).reverse().map(l => `
+        <div class="flex justify-between border-b border-black/5 pb-1">
+            <span>To: ${l.args.to.slice(0,10)}...</span>
+            <span class="text-[#138808]">-${ethers.utils.formatUnits(l.args.value, 6)} USDC</span>
+        </div>`).join('');
+}
+
+function closeFlow() { location.reload(); }
 function copyAddr() { navigator.clipboard.writeText(userAddress); alert("Copied!"); }
