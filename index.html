@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <title>ARC INDIPAY - POPUP EDITION</title>
+    <title>ARC INDIPAY - FINAL FIX</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    
     <style>
         body { background: #030613; color: #f0f2f5; font-family: sans-serif; display: flex; justify-content: center; min-height: 100vh; margin: 0; }
         .app-container { max-width: 480px; width: 100%; padding: 20px; }
@@ -17,15 +18,15 @@
         .tool-btn { cursor: pointer; transition: 0.2s; }
         .tool-btn:active { transform: scale(0.95); background: rgba(59, 92, 255, 0.1); }
         input, select { outline: none; color: white; background: rgba(255,255,255,0.05) !important; border: 1px solid rgba(255,255,255,0.1) !important; }
-        option { background: #030613; color: white; }
     </style>
 </head>
 <body>
     <div class="app-container">
         <div id="loginScreen" class="flex flex-col items-center justify-center min-h-[80vh] text-center font-bold italic uppercase">
             <div class="bg-blue-600 text-white rounded-2xl w-20 h-20 flex items-center justify-center text-3xl mb-6 shadow-2xl">1ST</div>
-            <h1 class="text-4xl text-blue-500 mb-2 font-black italic">Arc Indipay</h1>
+            <h1 class="text-4xl text-blue-500 mb-2 font-black italic tracking-tighter">Arc Indipay</h1>
             <button onclick="connectWallet()" class="w-full max-w-xs bg-blue-600 py-4 rounded-2xl shadow-xl text-white font-black italic">CONNECT WALLET</button>
+            <p id="debug" class="text-[10px] text-red-500 mt-4 italic opacity-50"></p>
         </div>
 
         <div id="dashboard" class="hidden">
@@ -38,7 +39,7 @@
                 <p class="text-[9px] opacity-60 mb-2 font-mono uppercase tracking-widest text-white">Wallet: <span id="walletAddr">0x...</span></p>
                 <div class="mt-4 font-bold italic text-white uppercase tracking-tighter">
                     <h1 class="text-5xl font-black tracking-tighter"><span id="usdcBal">0.00</span> <span class="text-2xl opacity-50">USDC</span></h1>
-                    <p class="text-xl mt-2 text-blue-300">≈ ₹<span id="inrBal">0.00</span></p>
+                    <p class="text-xl mt-2 text-blue-300 font-bold">≈ ₹<span id="inrBal">0.00</span></p>
                 </div>
             </div>
 
@@ -46,15 +47,54 @@
                 <div onclick="openTransfer()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-paper-plane text-2xl text-blue-400 mb-3"></i><div class="text-sm">Transfer</div></div>
                 <div onclick="openReceive()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-qrcode text-2xl text-blue-400 mb-3"></i><div class="text-sm">Receive</div></div>
             </div>
-
             <div class="grid grid-cols-2 gap-4 mb-8 text-center text-white font-bold italic uppercase">
                 <div onclick="startScanner()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-expand text-2xl text-blue-400 mb-3"></i><div class="text-sm">Scan & Pay</div></div>
                 <div onclick="openHistoryModal()" class="glass p-8 tool-btn border-white/5"><i class="fa-solid fa-clock-rotate-left text-2xl text-blue-400 mb-3"></i><div class="text-sm">History</div></div>
             </div>
 
             <div class="glass p-7 mb-6 border-blue-500/30 text-white font-bold italic uppercase">
-                <div class="flex items-center gap-3 mb-6"><i class="fa-bolt fa-solid text-blue-400"></i><h3 class="text-blue-400 text-sm">Utility Payments</h3></div>
+                <div class="flex items-center gap-3 mb-6"><i class="fa-bolt fa-solid text-blue-400"></i><h3 class="text-blue-400 text-sm tracking-wider">Utility Payments</h3></div>
                 <div class="grid grid-cols-2 gap-4 text-center">
-                    <div onclick="openBookingPopup('mobile')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-mobile-screen text-blue-400"></i><div class="text-[10px]">Mobile</div></div>
-                    <div onclick="openBookingPopup('electricity')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-lightbulb text-blue-400"></i><div class="text-[10px]">Electric</div></div>
-                    <div onclick="open
+                    <div onclick="openPopup('mobile')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-mobile-screen text-blue-400"></i><div class="text-[10px]">Mobile</div></div>
+                    <div onclick="openPopup('electricity')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-lightbulb text-blue-400"></i><div class="text-[10px]">Electric</div></div>
+                    <div onclick="openPopup('dth')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-tv text-blue-400"></i><div class="text-[10px]">DTH</div></div>
+                    <div onclick="openPopup('broadband')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-wifi text-blue-400"></i><div class="text-[10px]">Broadband</div></div>
+                </div>
+            </div>
+
+            <div class="glass p-7 mb-8 border-blue-500/30 text-white font-bold italic uppercase">
+                <div class="flex items-center gap-3 mb-6"><i class="fa-solid fa-ticket text-blue-400"></i><h3 class="text-blue-400 text-sm tracking-wider">Ticket Booking</h3></div>
+                <div class="grid grid-cols-2 gap-4 text-center">
+                    <div onclick="openPopup('train')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-train text-blue-400"></i><div class="text-[10px]">Train</div></div>
+                    <div onclick="openPopup('bus')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-bus text-blue-400"></i><div class="text-[10px]">Bus</div></div>
+                    <div onclick="openPopup('flight')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-plane text-blue-400"></i><div class="text-[10px]">Flight</div></div>
+                    <div onclick="openPopup('movie')" class="glass p-5 tool-btn border-white/5 flex flex-col items-center gap-2"><i class="fa-solid fa-film text-blue-400"></i><div class="text-[10px]">Movie</div></div>
+                </div>
+            </div>
+
+            <div class="glass p-6 min-h-[160px] text-white">
+                <p class="text-[10px] font-bold opacity-30 mb-4 tracking-widest uppercase italic text-center">Latest Transactions</p>
+                <div id="latestTxList" class="space-y-4"></div>
+            </div>
+        </div>
+
+        <div id="bookingModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden flex items-center justify-center p-6 z-50">
+            <div class="glass p-7 w-full max-w-sm border-blue-500/30 text-white font-bold italic uppercase">
+                <div class="flex justify-between items-center mb-8"><h3 id="modalTitle" class="text-blue-400 italic">Payment</h3><button onclick="closeModal('bookingModal')" class="text-2xl font-bold">&times;</button></div>
+                <div class="space-y-4">
+                    <select id="operatorSelect" class="w-full p-4 rounded-xl text-xs"></select>
+                    <input id="bookId" type="text" class="w-full p-4 rounded-xl text-xs">
+                    <input id="bookAmount" type="number" placeholder="Amount (USDC)" class="w-full p-4 rounded-xl text-xl font-bold">
+                    <button onclick="payBooking()" id="finalPayBtn" class="w-full bg-blue-600 font-black py-4 rounded-2xl shadow-xl active:scale-95 tracking-widest uppercase">Pay & Confirm</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="historyModal" class="fixed inset-0 bg-black/95 backdrop-blur-md hidden flex flex-col p-6 z-50 text-white font-bold italic uppercase">
+            <div class="flex justify-between items-center mb-6"><h3 class="text-blue-400">Transaction History</h3><button onclick="closeModal('historyModal')" class="text-2xl">&times;</button></div>
+            <div id="fullHistoryList" class="flex-1 overflow-y-auto space-y-4 pr-2"></div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
