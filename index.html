@@ -4,16 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <title>ARC INDIPAY</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
     <style>
         :root { --bg: #030613; --primary: #2540d9; --card-bg: rgba(17, 25, 45, 0.8); }
-        body { background: var(--bg); background-image: radial-gradient(circle at 50% -10%, #15224a 0%, var(--bg) 60%); color: #f0f2f5; font-family: -apple-system, sans-serif; display: flex; justify-content: center; min-height: 100vh; margin: 0; }
+        body { background: var(--bg); background-image: radial-gradient(circle at 50% -10%, #15224a 0%, var(--bg) 60%); color: #f0f2f5; font-family: -apple-system, sans-serif; display: flex; justify-content: center; min-height: 100vh; margin: 0; overflow-x: hidden; }
         .app-container { max-width: 480px; width: 100%; padding: 20px; box-sizing: border-box; }
         .glass-card { background: var(--card-bg); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); border-radius: 24px; padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
-        .tool-btn { background: rgba(59, 92, 255, 0.1); border: 1px solid rgba(59, 92, 255, 0.2); border-radius: 18px; padding: 20px; transition: 0.2s; text-align: center; }
+        .tool-btn { background: rgba(59, 92, 255, 0.1); border: 1px solid rgba(59, 92, 255, 0.2); border-radius: 18px; padding: 20px; transition: 0.2s; text-align: center; cursor: pointer; }
         .tool-btn:active { transform: scale(0.95); background: var(--primary); }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     </style>
 </head>
 <body>
@@ -21,9 +22,9 @@
         <div class="flex justify-between items-center mb-6">
             <div class="flex items-center gap-2">
                 <div class="bg-blue-600 text-white font-bold rounded-lg px-2 py-1 text-xs">1st</div>
-                <button onclick="connect()" id="connectBtn" class="text-xs font-bold bg-white/10 px-4 py-2 rounded-full border border-white/20">Connect Wallet</button>
+                <button onclick="connect()" id="connectBtn" class="text-xs font-bold bg-white/10 px-4 py-2 rounded-full border border-white/20 transition-all hover:bg-white/20">Connect Wallet</button>
             </div>
-            <h2 class="text-xl font-black text-blue-500 tracking-tighter italic">ARC INDI PAY</h2>
+            <h2 class="text-xl font-black text-blue-500 tracking-tighter italic uppercase">Arc Indipay</h2>
         </div>
 
         <div class="text-[10px] text-green-400 font-bold mb-4 flex items-center gap-1 uppercase tracking-widest">
@@ -33,24 +34,24 @@
         <div class="glass-card mb-6 bg-gradient-to-br from-blue-600 to-indigo-900 border-none">
             <div class="flex justify-between text-[11px] opacity-70 font-mono">
                 <span>WALLET ADDRESS</span>
-                <span id="addr">0x...0000</span>
+                <span id="addr">NOT CONNECTED</span>
             </div>
             <div class="mt-6">
-                <h1 class="text-5xl font-black tracking-tighter"><span id="usdcBal">100.00</span> <span class="text-2xl opacity-60">USDC</span></h1>
-                <p class="text-xl font-bold mt-2 opacity-90">≈ ₹<span id="inrBal">8,350.00</span></p>
+                <h1 class="text-5xl font-black tracking-tighter"><span id="usdcBal">0.00</span> <span class="text-2xl opacity-60">USDC</span></h1>
+                <p class="text-xl font-bold mt-2 opacity-90">≈ ₹<span id="inrBal">0.00</span></p>
             </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4 mb-8">
-            <div class="tool-btn">
+            <div class="tool-btn" onclick="openTransfer()">
                 <i class="fa-solid fa-paper-plane text-2xl text-blue-400 mb-2"></i>
                 <div class="font-bold text-sm">Transfer</div>
             </div>
-            <div class="tool-btn">
+            <div class="tool-btn" onclick="alert('Receive: Your address is ' + user)">
                 <i class="fa-solid fa-qrcode text-2xl text-blue-400 mb-2"></i>
                 <div class="font-bold text-sm">Receive</div>
             </div>
-            <div class="tool-btn col-span-2 py-4">
+            <div class="tool-btn col-span-2 py-4" onclick="alert('Scanner requires HTTPS and Camera permissions')">
                 <i class="fa-solid fa-expand text-2xl text-blue-400 mb-2"></i>
                 <div class="font-bold text-sm">Scan & Pay</div>
             </div>
@@ -59,7 +60,27 @@
         <div class="glass-card">
             <h3 class="text-xs font-bold text-blue-300 uppercase tracking-widest mb-4 border-b border-white/10 pb-2">Latest 5 Transactions</h3>
             <div class="space-y-4 text-sm" id="historyList">
-                <div class="flex justify-between opacity-50 italic">No transactions yet</div>
+                <div class="flex justify-between opacity-50 italic">Connect wallet to see history</div>
+            </div>
+        </div>
+
+        <div id="transferModal" class="fixed inset-0 bg-black/90 backdrop-blur-md hidden flex items-center justify-center p-4 z-[100]">
+            <div class="glass-card w-full max-w-sm border-blue-500/30">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-bold text-blue-400 tracking-tight text-center w-full">SEND USDC</h3>
+                    <button onclick="closeModal()" class="absolute right-8 text-white/50 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+                </div>
+                
+                <label class="text-[10px] text-white/50 uppercase font-bold tracking-widest">Recipient Address</label>
+                <input id="recipientAddr" type="text" placeholder="0x..." class="w-full bg-white/5 border border-white/10 rounded-xl p-4 mt-2 mb-4 outline-none focus:border-blue-500 text-sm">
+                
+                <label class="text-[10px] text-white/50 uppercase font-bold tracking-widest">Amount (USDC)</label>
+                <input id="sendAmount" type="number" oninput="showInrPreview(this.value)" placeholder="0.00" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 mt-2 mb-1 outline-none focus:border-blue-500 font-bold text-3xl">
+                <p class="text-xs text-blue-400 mb-8 font-medium">≈ ₹<span id="inrPreview">0.00</span> INR</p>
+
+                <button onclick="executeTransfer()" id="sendBtn" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95">
+                    Confirm Payment
+                </button>
             </div>
         </div>
 
